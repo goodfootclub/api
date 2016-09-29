@@ -1,0 +1,16 @@
+# Nginx config for the server running inside the vagrant vm
+
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server ipv6only=on;
+
+    access_log /home/vagrant/logs/nginx-access.log;
+    error_log /home/vagrant/logs/nginx-error.log;
+
+    server_name localhost;
+
+    # Django development server
+    location / {
+      proxy_pass http://localhost:8000;
+    }
+}

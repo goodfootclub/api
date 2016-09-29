@@ -1,0 +1,15 @@
+###Vagrant###
+
+.vagrant/
+
+
+###Python/Django###
+
+*.log
+*.pot
+*.pyc
+
+
+###Ansible###
+
+*.retry

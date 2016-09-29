@@ -1,0 +1,141 @@
+---
+
+# Simple ansible playbook for deploying our django app on Ubuntu
+
+- name: Install the project for development in a vagrant environment
+  hosts: all
+  become: yes
+  become_user: root
+  remote_user: vagrant
+
+  #   _  _ ____ ____ ____
+  #   |  | |__| |__/ [__
+  #    \/  |  | |  \ ___]
+  #
+  vars:
+    project_name: gfc
+    db_name: '{{ project_name }}'
+    db_user: '{{ project_name }}'
+    db_password: '{{ project_name }}'
+
+  #   ___ ____ ____ _  _ ____
+  #    |  |__| [__  |_/  [__
+  #    |  |  | ___] | \_ ___]
+  #
+  tasks:
+
+  #   ____ ____ ____ _  _ _ ____ ____ _  _ ____ _  _ ___ ____
+  #   |__/ |___ |  | |  | | |__/ |___ |\/| |___ |\ |  |  [__
+  #   |  \ |___ |_\| |__| | |  \ |___ |  | |___ | \|  |  ___]
+  #
+  - name: Run apt-get update
+    apt: update_cache=yes
+
+  - name: Ensure that required dependencies available with apt are installed
+    apt: name={{ item }} state=present
+    with_items:
+      # PostgreSQL
+      - postgresql
+      - postgresql-contrib
+      - libpq-dev
+      # Nginx
+      - nginx
+
+      # Python
+      - python-dev
+      - python-pip
+      - python-psycopg2
+      - python-virtualenv
+      - python3-dev
+
+  - name: Ensure that Supervisor is installed
+    pip:
+      name: supervisor
+      state: "latest"
+
+  - name: Ensure that python requirements are installed
+    pip:
+      requirements: /home/vagrant/api/requirements.txt
+      virtualenv: /home/vagrant/.env
+      virtualenv_python: python3.4
+
+  #   ____ _ _    ____ ____ _   _ ____ ___ ____ _  _
+  #   |___ | |    |___ [__   \_/  [__   |  |___ |\/|
+  #   |    | |___ |___ ___]   |   ___]  |  |___ |  |
+  #
+  - name: Ensure that logs folder exists
+    file: path=/home/vagrant/logs state=directory
+
+  - name: Ensure that supervisor config folder exists
+    file: path=/etc/supervisor state=directory
+
+  #   ___  ___
+  #   |  \ |__]
+  #   |__/ |__]
+  #
+  - name: Ensure that PostgreSQL service is running
+    service: name=postgresql state=started enabled=yes
+
+  - name: Ensure that database is present
+    become_user: postgres
+    postgresql_db:
+      name: '{{ db_name }}'
+      encoding: 'UTF-8'
+      lc_collate: 'en_US.UTF-8'
+      lc_ctype: 'en_US.UTF-8'
+      template: 'template0'
+      state: present
+
+  - name: Ensure that database user exists
+    become_user: postgres
+    postgresql_user:
+      db: '{{ db_name }}'
+      name: '{{ db_user }}'
+      password: '{{ db_password }}'
+      priv: ALL
+      state: present
+
+  #   _  _ ____ _ _  _ _  _
+  #   |\ | | __ | |\ |  \/
+  #   | \| |__] | | \| _/\_
+  #
+  - name: Ensure that Nginx configuration file is up to date
+    template:
+      src: vagrant.nginx
+      dest: /etc/nginx/sites-available/default
+      backup: yes
+    notify: restart nginx
+
+  - name: Ensure that Nginx service is started
+    service: name=nginx state=started enabled=yes
+
+  #   ___  _   _ ___ _  _ ____ _  _    ____ ___ _  _ ____ ____
+  #   |__]  \_/   |  |__| |  | |\ |    [__   |  |  | |___ |___
+  #   |      |    |  |  | |__| | \|    ___]  |  |__| |    |
+  #
+  - name: Migrate django models
+    django_manage: >
+      command=migrate
+      app_path=/home/vagrant/api
+      virtualenv=/home/vagrant/.env
+
+  - name: Ensure that Supervisor configuration file is up to date
+    template:
+      src: supervisord.conf.ini
+      dest: /etc/supervisor/supervisord.conf
+      backup: yes
+    notify: update supervisor
+
+  - name: Ensure that Supervisor service is started
+    command: supervisord chdir=/var/run/ creates=supervisor.sock
+
+  #   _  _ ____ _  _ ___  _    ____ ____ ____
+  #   |__| |__| |\ | |  \ |    |___ |__/ [__
+  #   |  | |  | | \| |__/ |___ |___ |  \ ___]
+  #
+  handlers:
+  - name: restart nginx
+    service: name=nginx state=restarted
+
+  - name: update supervisor
+    command: supervisorctl update
