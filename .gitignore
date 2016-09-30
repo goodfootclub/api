@@ -13,3 +13,9 @@
 ###Ansible###
 
 *.retry
+
+
+###IDE/Editors###
+
+*.sublime-project*
+.idea
