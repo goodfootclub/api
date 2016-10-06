@@ -131,6 +131,9 @@
   #   |__]  \_/   |  |__| |  | |\ |    [__   |  |  | |___ |___
   #   |      |    |  |  | |__| | \|    ___]  |  |__| |    |
   #
+  - name: Ensure that manage.py is executable
+    file: path={{ home }}/api/manage.py mode="u=rwx"
+
   - name: Migrate django models
     django_manage: >
       command=migrate
