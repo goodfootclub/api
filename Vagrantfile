@@ -7,6 +7,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
   config.vm.network "forwarded_port", guest: 80, host: 8000   # Nginx
   config.vm.network "forwarded_port", guest: 8001, host: 8001 # Supervisord
+  config.vm.network "forwarded_port", guest: 8002, host: 8002 # Logs
 
   config.vm.provider :virtualbox do |vb|
     vb.memory = "1024"

@@ -54,11 +54,22 @@
       name: supervisor
       state: 'latest'
 
-  - name: Ensure that python requirements are installed
+  - name: Ensure that Gunicorn is installed
+    pip:
+      name: gunicorn
+      state: 'latest'
+      virtualenv: '{{ home }}/.env'
+      virtualenv_python: python3.4
+
+  - name: Ensure that Tailon (web viewer for logs) is installed
+    pip:
+      name: tailon
+      state: 'latest'
+
+  - name: Ensure that project python requirements are installed
     pip:
       requirements: '{{ home }}/api/requirements.txt'
       virtualenv: '{{ home }}/.env'
-      virtualenv_python: python3.4
 
   #   ____ _ _    ____ ____ _   _ ____ ___ ____ _  _
   #   |___ | |    |___ [__   \_/  [__   |  |___ |\/|
