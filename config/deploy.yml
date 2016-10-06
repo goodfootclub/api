@@ -18,7 +18,7 @@
     apt: name=git state=present
 
   - name: Ensure that project files are updated
-    git: repo={{ repo }} dest=/home/ubuntu/api
+    git: repo={{ repo }} dest=/home/ubuntu/api force=yes
 
 
 - include: site.yml home=/home/ubuntu
