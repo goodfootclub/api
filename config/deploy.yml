@@ -18,6 +18,8 @@
     apt: name=git state=present
 
   - name: Ensure that project files are updated
+    # TODO: replace with syncronize, makes more sense
+    # http://docs.ansible.com/ansible/synchronize_module.html
     git: repo={{ repo }} dest=/home/ubuntu/api force=yes
 
 
