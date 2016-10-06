@@ -4,20 +4,22 @@
 
 - name: Install the project for development in a vagrant environment
   hosts: all
-  become: yes
-  become_user: root
-  remote_user: vagrant
 
   #   _  _ ____ ____ ____
   #   |  | |__| |__/ [__
   #    \/  |  | |  \ ___]
   #
   vars:
-    project_name: gfc
-    home: /home/vagrant
     db_name: '{{ project_name }}'
-    db_user: '{{ project_name }}'
     db_password: '{{ project_name }}'
+    db_user: '{{ project_name }}'
+    home: /home/vagrant
+    project_name: gfc
+    remote_user: vagrant
+
+  become: yes
+  become_user: root
+  remote_user: '{{ remote_user }}'
 
   #   ___ ____ ____ _  _ ____
   #    |  |__| [__  |_/  [__

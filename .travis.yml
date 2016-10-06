@@ -1,0 +1,39 @@
+---
+language: python
+python: '3.4'
+notifications:
+  slack: thegoodfootclub:oVo9Dqq6azm2JGu6Wa052sQC
+
+addons:
+  ssh_known_hosts: dev.goodfoot.club
+
+env:
+  global:
+    - ANSIBLE_PRIVATE_KEY_FILE=$TRAVIS_BUILD_DIR/config/ssh_key
+    - ANSIBLE_SSH_PIPELINING=True
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq python-apt python-pycurl
+
+install:
+  - echo "Pass"
+
+script:
+  - echo "No tests yet"
+
+
+before_deploy:
+  - deactivate
+  - source ~/virtualenv/python2.7/bin/activate
+  - pip install ansible
+  - openssl aes-256-cbc -K $encrypted_b483be284343_key -iv $encrypted_b483be284343_iv -in config/ssh_key.enc -out config/ssh_key -d
+  - sudo chmod 600 config/ssh_key
+  - echo dev.goodfoot.club > inventory
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: ansible-playbook -i inventory config/deploy.yml
+  on:
+    branch: master

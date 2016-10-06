@@ -21,4 +21,4 @@
     git: repo={{ repo }} dest=/home/ubuntu/api force=yes
 
 
-- include: site.yml home=/home/ubuntu
+- include: site.yml home=/home/ubuntu remote_user=ubuntu
