@@ -4,8 +4,8 @@ server {
     listen 80 default_server;
     listen [::]:80 default_server ipv6only=on;
 
-    access_log /home/vagrant/logs/nginx-access.log;
-    error_log /home/vagrant/logs/nginx-error.log;
+    access_log {{ home }}/logs/nginx-access.log;
+    error_log {{ home }}/logs/nginx-error.log;
 
     server_name localhost;
 

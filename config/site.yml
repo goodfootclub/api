@@ -14,6 +14,7 @@
   #
   vars:
     project_name: gfc
+    home: /home/vagrant
     db_name: '{{ project_name }}'
     db_user: '{{ project_name }}'
     db_password: '{{ project_name }}'
@@ -51,12 +52,12 @@
   - name: Ensure that Supervisor is installed
     pip:
       name: supervisor
-      state: "latest"
+      state: 'latest'
 
   - name: Ensure that python requirements are installed
     pip:
-      requirements: /home/vagrant/api/requirements.txt
-      virtualenv: /home/vagrant/.env
+      requirements: '{{ home }}/api/requirements.txt'
+      virtualenv: '{{ home }}/.env'
       virtualenv_python: python3.4
 
   #   ____ _ _    ____ ____ _   _ ____ ___ ____ _  _
@@ -64,7 +65,7 @@
   #   |    | |___ |___ ___]   |   ___]  |  |___ |  |
   #
   - name: Ensure that logs folder exists
-    file: path=/home/vagrant/logs state=directory
+    file: path={{ home }}/logs state=directory
 
   - name: Ensure that supervisor config folder exists
     file: path=/etc/supervisor state=directory
@@ -77,7 +78,10 @@
     service: name=postgresql state=started enabled=yes
 
   - name: Ensure that database is present
+    become: yes
     become_user: postgres
+    vars:
+      ansible_ssh_pipelining: true
     postgresql_db:
       name: '{{ db_name }}'
       encoding: 'UTF-8'
@@ -87,7 +91,10 @@
       state: present
 
   - name: Ensure that database user exists
+    become: yes
     become_user: postgres
+    vars:
+      ansible_ssh_pipelining: true
     postgresql_user:
       db: '{{ db_name }}'
       name: '{{ db_user }}'
@@ -116,8 +123,8 @@
   - name: Migrate django models
     django_manage: >
       command=migrate
-      app_path=/home/vagrant/api
-      virtualenv=/home/vagrant/.env
+      app_path={{ home }}/api
+      virtualenv={{ home }}/.env
 
   - name: Ensure that Supervisor configuration file is up to date
     template:
