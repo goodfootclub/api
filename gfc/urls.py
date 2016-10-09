@@ -16,26 +16,11 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
-from django.http import HttpResponse
-
-
-def auth_demo(request):
-    """Quick and dirty auth demo"""
-    if not request.user.is_authenticated:
-        return HttpResponse(
-            'You are not logged in. '
-            '<a href="/login/facebook/">'
-            'Log in with Facebook!'
-            '</a>'
-        )
-    else:
-        return HttpResponse('Hello {u.username}!'.format(u=request.user))
-
 
 urlpatterns = [
-    url(r'^$', auth_demo),
     url(r'^admin/', admin.site.urls),
     url(r'^api/auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
     url(r'^auth/', include('social.apps.django_app.urls', namespace='social')),
+    url(r'^api/', include('main.urls')),
 ]
