@@ -13,7 +13,7 @@
     db_name: '{{ project_name }}'
     db_password: '{{ project_name }}'
     db_user: '{{ project_name }}'
-    home: /home/vagrant
+    srv: /home/vagrant
     project_name: gfc
     remote_user: vagrant
 
@@ -60,7 +60,7 @@
     pip:
       name: gunicorn
       state: 'latest'
-      virtualenv: '{{ home }}/.env'
+      virtualenv: '{{ srv }}/.env'
       virtualenv_python: python3.4
 
   - name: Ensure that Tailon (web viewer for logs) is installed
@@ -70,15 +70,20 @@
 
   - name: Ensure that project python requirements are installed
     pip:
-      requirements: '{{ home }}/api/requirements.txt'
-      virtualenv: '{{ home }}/.env'
+      requirements: '{{ srv }}/api/requirements.txt'
+      virtualenv: '{{ srv }}/.env'
 
   #   ____ _ _    ____ ____ _   _ ____ ___ ____ _  _
   #   |___ | |    |___ [__   \_/  [__   |  |___ |\/|
   #   |    | |___ |___ ___]   |   ___]  |  |___ |  |
   #
-  - name: Ensure that logs folder exists
-    file: path={{ home }}/logs state=directory
+  - name: Ensure that all the needed folders do exist
+    file: path={{ item }} state=directory
+    with_items:
+      - '{{ srv }}/logs'
+      - '{{ srv }}/static'
+      - '{{ srv }}/media'
+      - '{{ srv }}/web'
 
   - name: Ensure that supervisor config folder exists
     file: path=/etc/supervisor state=directory
@@ -134,13 +139,19 @@
   #   |      |    |  |  | |__| | \|    ___]  |  |__| |    |
   #
   - name: Ensure that manage.py is executable
-    file: path={{ home }}/api/manage.py mode="u=rwx"
+    file: path={{ srv }}/api/manage.py mode="u=rwx"
 
   - name: Migrate django models
     django_manage: >
       command=migrate
-      app_path={{ home }}/api
-      virtualenv={{ home }}/.env
+      app_path={{ srv }}/api
+      virtualenv={{ srv }}/.env
+
+  - name: Collect static files
+    django_manage: >
+      command=collectstatic
+      app_path={{ srv }}/api
+      virtualenv={{ srv }}/.env
 
   - name: Ensure that Supervisor configuration file is up to date
     template:

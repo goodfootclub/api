@@ -10,10 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
-import os
+from os.path import abspath, dirname, join as join_path
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Build paths inside the project like this: join_path(BASE_DIR, ...)
+APP_DIR = dirname(dirname(dirname(abspath(__file__))))
+SRV_DIR = dirname(APP_DIR)
 
 
 # Quick-start development settings - unsuitable for production
@@ -88,6 +90,7 @@ DATABASES = {
 
 
 # Authentication
+
 AUTHENTICATION_BACKENDS = (
     'social.backends.facebook.FacebookOAuth2',
     'django.contrib.auth.backends.ModelBackend',
@@ -118,3 +121,29 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = join_path(SRV_DIR, 'static')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = join_path(SRV_DIR, 'media')
+
+
+# Logging
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join_path(SRV_DIR, 'logs', 'django-debug.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
