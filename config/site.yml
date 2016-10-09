@@ -83,7 +83,7 @@
       - '{{ srv }}/logs'
       - '{{ srv }}/static'
       - '{{ srv }}/media'
-      - '{{ srv }}/web'
+      - '{{ srv }}/web/dist'
 
   - name: Ensure that supervisor config folder exists
     file: path=/etc/supervisor state=directory

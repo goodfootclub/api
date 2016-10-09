@@ -7,7 +7,7 @@ server {
     access_log {{ srv }}/logs/nginx-access.log;
     error_log {{ srv }}/logs/nginx-error.log;
 
-    root {{ srv }}/web;
+    root {{ srv }}/web/dist;
     index index.html;
     server_name localhost;
 

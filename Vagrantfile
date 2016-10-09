@@ -16,7 +16,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.synced_folder ".", "/home/vagrant/api"
-  config.vm.synced_folder "../web/dist/", "/home/vagrant/web"
+  config.vm.synced_folder "../web/dist", "/home/vagrant/web/dist"
 
   config.vm.provision "ansible_local", run: "always" do |ansible|
     ansible.provisioning_path = "/home/vagrant/api"
