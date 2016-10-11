@@ -27,8 +27,10 @@ before_deploy:
   - deactivate
   - source ~/virtualenv/python2.7/bin/activate
   - pip install ansible
-  - openssl aes-256-cbc -K $encrypted_b483be284343_key -iv $encrypted_b483be284343_iv -in config/ssh_key.enc -out config/ssh_key -d
-  - sudo chmod 600 config/ssh_key
+  - >-
+    openssl aes-256-cbc -K $encrypted_b483be284343_key -iv
+    $encrypted_b483be284343_iv -in config/ssh_key.enc -out config/ssh_key -d
+  - chmod 600 config/ssh_key
   - echo dev.goodfoot.club > inventory
 
 deploy:

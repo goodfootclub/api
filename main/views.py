@@ -23,5 +23,7 @@ class ApiRoot(APIView):
 
     def get(self, request, format=None):
         return Response({
-            'api-root': reverse('api-root', request=request, format=format)
+            'api-root': reverse('api-root', request=request, format=format),
+            'current-user':
+                reverse('current-user', request=request, format=format)
         })

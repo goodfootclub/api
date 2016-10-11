@@ -6,7 +6,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.box = "ubuntu/trusty64"
   config.vm.network "forwarded_port", guest: 80, host: 8000   # Nginx
-  config.vm.network "forwarded_port", guest: 8001, host: 8001 # Supervisord
+  config.vm.network "forwarded_port", guest: 8001, host: 8001 # Supervisor
   config.vm.network "forwarded_port", guest: 8002, host: 8002 # Logs
 
   config.vm.provider :virtualbox do |vb|
@@ -16,7 +16,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.synced_folder ".", "/home/vagrant/api"
-  config.vm.synced_folder "../web/dist", "/home/vagrant/web/dist"
+  config.vm.synced_folder "../web/dist", "/home/vagrant/web/dist", create: true
 
   config.vm.provision "ansible_local", run: "always" do |ansible|
     ansible.provisioning_path = "/home/vagrant/api"
