@@ -1,8 +1,9 @@
 ---
 language: python
 python: '3.4'
+
 notifications:
-  slack: thegoodfootclub:oVo9Dqq6azm2JGu6Wa052sQC
+  slack: gffc:oVo9Dqq6azm2JGu6Wa052sQC
 
 addons:
   ssh_known_hosts: dev.goodfoot.club
