@@ -10,12 +10,15 @@
   #    \/  |  | |  \ ___]
   #
   vars:
+    admin_email: ignat@goodfoot.club
     db_name: '{{ project_name }}'
     db_password: '{{ project_name }}'
     db_user: '{{ project_name }}'
-    srv: /home/vagrant
     project_name: gfc
     remote_user: vagrant
+    srv: /home/vagrant
+    use_ssl: true
+    host: '{{ inventory_hostname }}'
 
   become: yes
   become_user: root
@@ -131,8 +134,38 @@
       backup: yes
     notify: restart nginx
 
+
+  # SSL cert
+  - name: Download certbot
+    get_url:
+      url: https://dl.eff.org/certbot-auto
+      dest: /opt/certbot-auto
+      mode: 0755
+    when: use_ssl
+
+  - name: Ensure that Nginx is stopped
+    service: name=nginx state=stopped
+    when: use_ssl
+
+  - name: Install certbot and generate cert
+    command: >-
+      /opt/certbot-auto certonly --noninteractive --agree-tos --standalone
+      --email {{ admin_email }} -d {{ host }}
+    args:
+      creates: "/etc/letsencrypt/live/{{ host }}"
+    when: use_ssl
+
   - name: Ensure that Nginx service is started
     service: name=nginx state=started enabled=yes
+
+  - name: Ensure a cron job to auto-renew the cert exists
+    cron:
+      name: daily auto renew cert
+      special_time: daily
+      job: >-
+        /opt/certbot-auto renew --standalone --no-self-upgrade --pre-hook
+        \"service nginx stop\" --post-hook \"service nginx start\" --quiet
+      state: present
 
   #   ___  _   _ ___ _  _ ____ _  _    ____ ___ _  _ ____ ____
   #   |__]  \_/   |  |__| |  | |\ |    [__   |  |  | |___ |___
