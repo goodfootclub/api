@@ -17,7 +17,7 @@
     project_name: gfc
     remote_user: vagrant
     srv: /home/vagrant
-    use_ssl: true
+    use_ssl: false
     host: '{{ inventory_hostname }}'
 
   become: yes
@@ -59,13 +59,6 @@
       name: supervisor
       state: 'latest'
 
-  - name: Ensure that Gunicorn is installed
-    pip:
-      name: gunicorn
-      state: 'latest'
-      virtualenv: '{{ srv }}/.env'
-      virtualenv_python: python3.4
-
   - name: Ensure that Tailon (web viewer for logs) is installed
     pip:
       name: tailon
@@ -75,6 +68,22 @@
     pip:
       requirements: '{{ srv }}/api/requirements.txt'
       virtualenv: '{{ srv }}/.env'
+      virtualenv_python: python3.4
+
+  - name: Ensure that Gunicorn is installed
+    pip:
+      name: gunicorn
+      state: 'latest'
+      virtualenv: '{{ srv }}/.env'
+
+  # Two tasks above are broken. As of Nov 1st pip ignores virtualenv arg
+  # See https://github.com/ansible/ansible-modules-core/issues/5347
+  # Temporary requirements are installed with the script blow.
+  - name: (Temporary fix) Install project requirements and Gunicorn
+    shell:
+      cmd: |
+        {{ srv }}/.env/bin/pip install -r {{ srv }}/api/requirements.txt
+        {{ srv }}/.env/bin/pip install gunicorn
 
   #   ____ _ _    ____ ____ _   _ ____ ___ ____ _  _
   #   |___ | |    |___ [__   \_/  [__   |  |___ |\/|
@@ -134,7 +143,6 @@
       backup: yes
     notify: restart nginx
 
-
   # SSL cert
   - name: Download certbot
     get_url:
@@ -155,9 +163,6 @@
       creates: "/etc/letsencrypt/live/{{ host }}"
     when: use_ssl
 
-  - name: Ensure that Nginx service is started
-    service: name=nginx state=started enabled=yes
-
   - name: Ensure a cron job to auto-renew the cert exists
     cron:
       name: daily auto renew cert
@@ -166,6 +171,10 @@
         /opt/certbot-auto renew --standalone --no-self-upgrade --pre-hook
         \"service nginx stop\" --post-hook \"service nginx start\" --quiet
       state: present
+    when: use_ssl
+
+  - name: Ensure that Nginx service is started
+    service: name=nginx state=started enabled=yes
 
   #   ___  _   _ ___ _  _ ____ _  _    ____ ___ _  _ ____ ____
   #   |__]  \_/   |  |__| |  | |\ |    [__   |  |  | |___ |___

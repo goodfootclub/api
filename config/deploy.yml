@@ -22,4 +22,4 @@
     # http://docs.ansible.com/ansible/synchronize_module.html
     git: repo={{ repo }} dest=/home/ubuntu/api force=yes
 
-- include: site.yml srv=/home/ubuntu remote_user=ubuntu
+- include: site.yml srv=/home/ubuntu remote_user=ubuntu use_ssl=true
