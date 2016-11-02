@@ -154,3 +154,6 @@ LOGGING = {
         },
     },
 }
+
+# Emails
+EMAIL_SUBJECT_PREFIX = '[GoodFootClub] '
