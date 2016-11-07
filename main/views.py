@@ -3,16 +3,17 @@
 ApiRoot (api/) - shows available api endpoints and a readme in the
     browsable view.
 """
-
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.generics import (
     ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView
+    ListAPIView,
+    RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.serializers import ModelSerializer
 
+from users.views import UserSerializer
 from .models import Team, Game, Location
 
 
@@ -47,6 +48,9 @@ class ApiRoot(APIView):
 ##
 
 class TeamSerializer(ModelSerializer):
+    players = UserSerializer(many=True)
+    manager = UserSerializer()
+
     class Meta:
         model = Team
 
@@ -69,35 +73,6 @@ class TeamDetails(RetrieveUpdateDestroyAPIView):
     """
     serializer_class = TeamSerializer
     queryset = Team.objects.all()
-
-
-##
-# Games API
-##
-
-class GameSerializer(ModelSerializer):
-    class Meta:
-        model = Game
-
-
-class GamesList(ListCreateAPIView):
-    """
-    # Games
-
-    Get a list of Games or make a new one!
-    """
-    serializer_class = GameSerializer
-    queryset = Game.objects.all()
-
-
-class GameDetails(RetrieveUpdateDestroyAPIView):
-    """
-    # Game
-
-    Check details of a Game, change the info or delete it!
-    """
-    serializer_class = GameSerializer
-    queryset = Game.objects.all()
 
 
 ##
@@ -128,3 +103,46 @@ class LocationDetails(RetrieveUpdateDestroyAPIView):
     serializer_class = LocationSerializer
     queryset = Location.objects.all()
 
+
+##
+# Games API
+##
+
+class GameSerializer(ModelSerializer):
+
+    class Meta:
+        model = Game
+
+    def __init__(self, *args, **kwargs):
+        """If parameter 'a' is in the query, show related objects in a
+        detailed representation so the front end doesn't need to hit
+        multiple API endpoints. Otherwise, just return ids
+        """
+        super().__init__(*args, **kwargs)
+
+        request = self.context['request']
+        if request and 'a' not in request.query_params:
+            return
+
+        self.fields['location'] = LocationSerializer()
+        self.fields['teams'] = TeamSerializer(many=True)
+
+
+class GamesList(ListCreateAPIView):
+    """
+    # Games
+
+    Get a list of Games or make a new one!
+    """
+    serializer_class = GameSerializer
+    queryset = Game.objects.all()
+
+
+class GameDetails(RetrieveUpdateDestroyAPIView):
+    """
+    # Game
+
+    Check details of a Game, change the info or delete it!
+    """
+    serializer_class = GameSerializer
+    queryset = Game.objects.all()
