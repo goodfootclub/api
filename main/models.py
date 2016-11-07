@@ -35,6 +35,9 @@ class Team(models.Model):
     def __unicode__(self):
         return "Team(name='{name}')".format(name=self.name)
 
+    def __str__(self):
+        return "{name}".format(name=self.name)
+
 
 class TeamRole(models.Model):
     """Role of a player in a Team (captain, field, substitute, etc...)
@@ -66,6 +69,9 @@ class Location(models.Model):
     def __unicode__(self):
         return "Location(name='{name}')".format(name=self.name)
 
+    def __str__(self):
+        return "{name}".format(name=self.name)
+
 
 class Game(models.Model):
     """
@@ -96,15 +102,15 @@ class RsvpStatus(models.Model):
 
     GOING = 'G'
     NOT_GOING = 'N'
-    UNDEFINED = 'U'
+    UNCERTAIN = 'U'
 
     RSVP_CHOICES = (
         (GOING, GOING),
         (NOT_GOING, NOT_GOING),
-        (UNDEFINED, UNDEFINED),
+        (UNCERTAIN, UNCERTAIN),
     )
 
     game = models.ForeignKey(Game, related_name='rsvps')
     player = models.ForeignKey(User, related_name='rsvps')
-    status = models.CharField(max_length=255, choices=RSVP_CHOICES,
-                              default=UNDEFINED)
+    status = models.CharField(max_length=1, choices=RSVP_CHOICES,
+                              default=UNCERTAIN)

@@ -13,7 +13,7 @@ from rest_framework.generics import (
 )
 from rest_framework.serializers import ModelSerializer
 
-from .models import Team, TeamRole
+from .models import Team, Game, Location
 
 
 class ApiRoot(APIView):
@@ -32,12 +32,18 @@ class ApiRoot(APIView):
         return Response({
             'api-root': reverse('api-root', request=request, format=format),
             'current-user':
-                reverse('current-user', request=request, format=format)
+                reverse('current-user', request=request, format=format),
+            'games-list':
+                reverse('games-list', request=request, format=format),
+            'locations-list':
+                reverse('locations-list', request=request, format=format),
+            'teams-list':
+                reverse('teams-list', request=request, format=format),
         })
 
 
 ##
-# TEAMS API
+# Teams API
 ##
 
 class TeamSerializer(ModelSerializer):
@@ -63,3 +69,62 @@ class TeamDetails(RetrieveUpdateDestroyAPIView):
     """
     serializer_class = TeamSerializer
     queryset = Team.objects.all()
+
+
+##
+# Games API
+##
+
+class GameSerializer(ModelSerializer):
+    class Meta:
+        model = Game
+
+
+class GamesList(ListCreateAPIView):
+    """
+    # Games
+
+    Get a list of Games or make a new one!
+    """
+    serializer_class = GameSerializer
+    queryset = Game.objects.all()
+
+
+class GameDetails(RetrieveUpdateDestroyAPIView):
+    """
+    # Game
+
+    Check details of a Game, change the info or delete it!
+    """
+    serializer_class = GameSerializer
+    queryset = Game.objects.all()
+
+
+##
+# Locations API
+##
+
+class LocationSerializer(ModelSerializer):
+    class Meta:
+        model = Location
+
+
+class LocationsList(ListCreateAPIView):
+    """
+    # Locations
+
+    Get a list of Locations or make a new one!
+    """
+    serializer_class = LocationSerializer
+    queryset = Location.objects.all()
+
+
+class LocationDetails(RetrieveUpdateDestroyAPIView):
+    """
+    # Location
+
+    Check details of a Location, change the info or delete it!
+    """
+    serializer_class = LocationSerializer
+    queryset = Location.objects.all()
+
