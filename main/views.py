@@ -11,10 +11,53 @@ from rest_framework.generics import (
     ListAPIView,
     RetrieveUpdateDestroyAPIView,
 )
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, Serializer
 
 from users.views import UserSerializer
 from .models import Team, Game, Location
+
+
+# FIXME: This doesn't work. I'll give it a second look in the morning
+class OptionalFieldsMixin(ModelSerializer):
+    """Optional fields on a serializer
+
+    Include or swap some specified fields based on having a certain
+    parameter(s) is in the query. For example initial api request
+    may need detailed info to display it quickly and avoid hitting api
+    multiple times, but after that, working with just ids is more efficient
+
+    ```
+    class MySerializer(ModelSerializer, OptionalFieldsMixin):
+
+        class Meta:
+            model = MyModel
+            asdfoptional_fields_query_params = ('d', 'details')  # Default
+            asdfoptional_fields = {
+                'users': UserSerializer(many=True)
+                # 'users' field will become an array of serialized
+                # objects instead of an array of ids if one of the
+                # parameters is in the query_params
+            }
+    ```
+    """
+    def __init__(self, *args, **kwargs):
+        super(OptionalFieldsMixin, self).__init__(*args, **kwargs)
+
+        if not hasattr(self.Meta, 'asdfoptional_fields'):
+            return
+
+        trigger_params = set(getattr(
+            self.Meta,
+            'asdfoptional_fields_query_params',
+            ('d', 'details')
+        ))
+
+        request = self.context['request']
+        if request and not trigger_params & request.query_params.keys():
+            return
+
+        for k in self.Meta.asdfoptional_fields:
+            self.fields.pop(k)
 
 
 class ApiRoot(APIView):
@@ -48,11 +91,21 @@ class ApiRoot(APIView):
 ##
 
 class TeamSerializer(ModelSerializer):
-    players = UserSerializer(many=True)
-    manager = UserSerializer()
 
     class Meta:
         model = Team
+
+    def __init__(self, *args, **kwargs):
+        """If parameter 'd' or 'details' is in the query, show related
+        objects in a detailed representation so the front end doesn't
+        need to hit multiple API endpoints. Otherwise, just return ids
+        """
+        super().__init__(*args, **kwargs)
+
+        request = self.context.get('request', None)
+        if request and {'d', 'details'} & request.query_params.keys():
+            self.fields['players'] = UserSerializer(many=True)
+            self.fields['manager'] = UserSerializer()
 
 
 class TeamsList(ListCreateAPIView):
@@ -80,6 +133,7 @@ class TeamDetails(RetrieveUpdateDestroyAPIView):
 ##
 
 class LocationSerializer(ModelSerializer):
+
     class Meta:
         model = Location
 
@@ -114,18 +168,19 @@ class GameSerializer(ModelSerializer):
         model = Game
 
     def __init__(self, *args, **kwargs):
-        """If parameter 'a' is in the query, show related objects in a
-        detailed representation so the front end doesn't need to hit
-        multiple API endpoints. Otherwise, just return ids
+        """If parameter 'd' or 'details' is in the query, show related
+        objects in a detailed representation so the front end doesn't
+        need to hit multiple API endpoints. Otherwise, just return ids
         """
         super().__init__(*args, **kwargs)
 
         request = self.context['request']
-        if request and 'a' not in request.query_params:
-            return
+        if request and {'d', 'details'} & request.query_params.keys():
+            self.fields['location'] = LocationSerializer()
+            self.fields['teams'] = TeamSerializer(many=True,
+                                                  context=self.context)
 
-        self.fields['location'] = LocationSerializer()
-        self.fields['teams'] = TeamSerializer(many=True)
+
 
 
 class GamesList(ListCreateAPIView):
