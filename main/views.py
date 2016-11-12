@@ -31,8 +31,8 @@ class OptionalFieldsMixin(ModelSerializer):
 
         class Meta:
             model = MyModel
-            asdfoptional_fields_query_params = ('d', 'details')  # Default
-            asdfoptional_fields = {
+            optional_fields_query_params = ('d', 'details')  # Default
+            optional_fields = {
                 'users': UserSerializer(many=True)
                 # 'users' field will become an array of serialized
                 # objects instead of an array of ids if one of the
@@ -43,12 +43,12 @@ class OptionalFieldsMixin(ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(OptionalFieldsMixin, self).__init__(*args, **kwargs)
 
-        if not hasattr(self.Meta, 'asdfoptional_fields'):
+        if not hasattr(self.Meta, 'optional_fields'):
             return
 
         trigger_params = set(getattr(
             self.Meta,
-            'asdfoptional_fields_query_params',
+            'optional_fields_query_params',
             ('d', 'details')
         ))
 
@@ -56,7 +56,7 @@ class OptionalFieldsMixin(ModelSerializer):
         if request and not trigger_params & request.query_params.keys():
             return
 
-        for k in self.Meta.asdfoptional_fields:
+        for k in self.Meta.optional_fields:
             self.fields.pop(k)
 
 
