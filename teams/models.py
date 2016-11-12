@@ -23,19 +23,29 @@ class Team(models.Model):
 class Role(models.Model):
     """Role of a player in a Team (captain, field, substitute, etc...)
     """
-    CAPTAIN = 'CAP'
-    FIELD = 'FLD'
-    SUBSTITUTE = 'SUB'
+    # Active
+    CAPTAIN = 3
+    FIELD = 2
+    SUBSTITUTE = 1
 
-    ROLE_CHOICES = (
+    # Inactive
+    INACTIVE = 0
+    INVITED = -1
+    REQUESTED_TO_JOIN = -2
+
+    CHOICES = (
         (CAPTAIN, 'Captain'),
         (FIELD, 'Field player'),
+        (INACTIVE, 'Inactive'),
+        (INVITED, 'Invited'),
+        (REQUESTED_TO_JOIN, 'Asked to join'),
         (SUBSTITUTE, 'Substitute'),
     )
 
     player = models.ForeignKey(User)
-    role = models.CharField(max_length=3, choices=ROLE_CHOICES, default=FIELD)
+    role = models.IntegerField(choices=CHOICES, default=INVITED)
     team = models.ForeignKey(Team)
 
     class Meta:
         unique_together = 'player', 'team'
+        ordering = ['-role']

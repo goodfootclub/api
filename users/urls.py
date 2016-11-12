@@ -1,4 +1,4 @@
-"""api/users/ urls """
+"""api/users/ URLs"""
 
 from django.conf.urls import url
 
