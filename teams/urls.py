@@ -1,11 +1,23 @@
 """api/teams URLs"""
 from django.conf.urls import url
 
-from .views import TeamsList, TeamDetails
+from .views import TeamsList, TeamDetails, RolesList, RoleDetails
 
 
-urlpatterns = [
-    url(r'^_?/?$', TeamsList.as_view(), name='teams-list'),
-    url(r'^_?/(?P<pk>\d+)/?$', TeamDetails.as_view(),
-        name='team-detail'),
-]
+urlpatterns = [url(
+    r'^_?/?$',
+    TeamsList.as_view(),
+    name='teams-list'
+), url(
+    r'^_?/(?P<team_id>\d+)/?$',
+    TeamDetails.as_view(),
+    name='team-detail'
+), url(
+    r'^_?/(?P<team_id>\d+)/players/?$',
+    RolesList.as_view(),
+    name='team-roles'
+), url(
+    r'^_?/(?P<team_id>\d+)/players/(?P<pk>\d+)/?$',
+    RoleDetails.as_view(),
+    name='team-role'
+)]

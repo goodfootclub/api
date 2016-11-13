@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.db.transaction import atomic
+from django.db import IntegrityError
 
 from rest_framework.generics import (
     ListCreateAPIView,
@@ -15,6 +16,7 @@ from rest_framework.serializers import (
     Serializer,
 )
 
+from main.exceptions import RelationAlreadyExist
 from users.views import UserSerializer
 from users.models import User
 from .models import Team, Role
@@ -26,13 +28,34 @@ class RoleSerializer(ModelSerializer):
         model = Role
         fields = 'id', 'player', 'role'
 
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        request = self.context.get('request', None)
+        if request and request.accepted_renderer.format == 'api':
+            data['url'] = reverse(
+                'team-role',
+                (self.context['view'].kwargs['team_id'], obj.id),
+                request=request
+            )
+        return data
 
-class RoleDetailsSerializer(ModelSerializer):
+    def create(self, validated_data):
+        if 'team_id' not in validated_data:
+            validated_data.update(self.context['view'].kwargs)
+        try:
+            return super().create(validated_data)
+        except IntegrityError as e:
+            raise RelationAlreadyExist(
+                detail=e.args[0].split('DETAIL:  ')[1]
+            )
+
+
+class RoleDetailsSerializer(RoleSerializer):
 
     first_name = ReadOnlyField(source='player.first_name')
     last_name = ReadOnlyField(source='player.last_name')
 
-    class Meta:
+    class Meta(RoleSerializer.Meta):
         model = Role
         fields = 'id', 'player', 'role', 'first_name', 'last_name'
 
@@ -60,27 +83,61 @@ class TeamSerializer(ModelSerializer):
     class Meta:
         model = Team
 
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
 
-class TeamDetailsSerializer(ModelSerializer):
+        request = self.context.get('request', None)
+        if request and request.accepted_renderer.format == 'api':
+            data['players_url'] = reverse('team-roles', (obj.id, ),
+                                          request=request)
+            data.move_to_end('players_url', False)
+        return data
+
+    def to_internal_value(self, data):
+        if 'players' not in data:
+            return data
+
+        roles_query = Role.objects.filter(team_id=data['id'])
+        roles_by_id = {
+            role.id: role
+            for role in roles_query
+        }
+
+        roles = []
+        for record in data['players']:
+            if isinstance(record, int):
+                record = {'player': record}
+            r, created = roles_query.get_or_create(
+                player_id=record['player'], team_id=data['id']
+            )
+            if not created:
+                roles_by_id.pop(r.id)
+            r.role = record.get('role', r.role)
+            roles.append(r)
+        data['players'] = roles
+        data['players_to_remove'] = roles_by_id.values()
+
+        return data
+
+    @atomic
+    def update(self, instance, validated_data):
+        for role in validated_data.pop('players', []):
+            role.save()
+
+        for role in validated_data.pop('players_to_remove', []):
+            role.delete()
+
+        return super().update(instance, validated_data)
+
+
+class TeamDetailsSerializer(TeamSerializer):
 
     players = RoleDetailsSerializer(source='role_set', many=True)
     managers = UserSerializer(many=True)
 
-    class Meta:
-        model = Team
-
     def to_internal_value(self, data):
 
-        roles = []
-        for record in data.get('players', []):
-            if isinstance(record, int):
-                record = {'player_id': record}
-            r, _ = Role.objects.get_or_create(
-                player_id=record['player_id'], team_id=data['id']
-            )
-            r.role = record.get('role', r.role)
-            roles.append(r)
-        data['players'] = roles
+        data = super().to_internal_value(data)
 
         data['managers'] = [
             1 if isinstance(user, int) else user['id']
@@ -89,10 +146,7 @@ class TeamDetailsSerializer(ModelSerializer):
 
         return data
 
-    @atomic
     def update(self, instance, validated_data):
-        for role in validated_data.pop('players', []):
-            role.save()
 
         instance.managers = validated_data.pop('managers', [])
 
@@ -111,10 +165,30 @@ class TeamDetails(RetrieveUpdateDestroyAPIView):
     # Detailed view
     To get related models in a serialized form instad of ids
     [detailed view](?details) is available
+
+    # Players
+    Manage plaers roles with [/players](./players) method
     """
     queryset = Team.objects.all()
+    lookup_url_kwarg = 'team_id'
 
     def get_serializer_class(self):
         if {'d', 'details'} & self.request.query_params.keys():
             return TeamDetailsSerializer
         return TeamSerializer
+
+
+class RolesList(ListCreateAPIView):
+    """List of players on the team"""
+    serializer_class = RoleDetailsSerializer
+
+    def get_queryset(self):
+        return Role.objects.filter(team_id=self.kwargs['team_id'])
+
+
+class RoleDetails(RetrieveUpdateDestroyAPIView):
+    """Get or update specific player role"""
+    serializer_class = RoleSerializer
+
+    def get_queryset(self):
+        return Role.objects.filter(team_id=self.kwargs['team_id'])

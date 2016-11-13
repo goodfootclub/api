@@ -202,6 +202,12 @@
       app_path={{ srv }}/api
       virtualenv={{ srv }}/.env
 
+  - name: Ensure there are some randomly generated users in the system
+    django_manage: >
+      command=randomusers
+      app_path={{ srv }}/api
+      virtualenv={{ srv }}/.env
+
   - name: Ensure that Supervisor configuration file is up to date
     template:
       src: supervisord.conf.ini
