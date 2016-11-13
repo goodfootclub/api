@@ -5,7 +5,7 @@ from .views import TeamsList, TeamDetails
 
 
 urlpatterns = [
-    url(r'^/?$', TeamsList.as_view(), name='teams-list'),
-    url(r'^/(?P<pk>\d+)/?$', TeamDetails.as_view(),
+    url(r'^_?/?$', TeamsList.as_view(), name='teams-list'),
+    url(r'^_?/(?P<pk>\d+)/?$', TeamDetails.as_view(),
         name='team-detail'),
 ]
