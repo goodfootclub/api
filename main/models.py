@@ -49,9 +49,9 @@ class Game(models.Model):
     datetime = models.DateTimeField()
     description = models.CharField(null=True, blank=True, max_length=255)
     duration = models.IntegerField(null=True)
-    location = models.ForeignKey(Location, related_name='games')
-    organizer = models.ForeignKey(User, related_name='games_created')
-    teams = models.ManyToManyField(Team, related_name='games')
+    location = models.ForeignKey(Location, related_name='old_games')
+    organizer = models.ForeignKey(User, related_name='old_games_created')
+    teams = models.ManyToManyField(Team, related_name='old_games')
 
 
 class RsvpStatus(models.Model):
@@ -69,7 +69,7 @@ class RsvpStatus(models.Model):
         (UNCERTAIN, UNCERTAIN),
     )
 
-    game = models.ForeignKey(Game, related_name='rsvps')
-    player = models.ForeignKey(User, related_name='rsvps')
+    game = models.ForeignKey(Game, related_name='old_rsvps')
+    player = models.ForeignKey(User, related_name='old_rsvps')
     status = models.CharField(max_length=1, choices=RSVP_CHOICES,
                               default=UNCERTAIN)

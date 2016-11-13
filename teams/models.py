@@ -21,8 +21,7 @@ class Team(models.Model):
 
 
 class Role(models.Model):
-    """Role of a player in a Team (captain, field, substitute, etc...)
-    """
+    """Role of a player in a Team (captain, field, substitute, etc...)"""
     # Active
     CAPTAIN = 3
     FIELD = 2

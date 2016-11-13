@@ -35,5 +35,5 @@ urlpatterns = [
     url(r'^users/', include('users.urls')),
 
     # Teams api
-    url(r'^teams', include('teams.urls')),
+    url(r'^teams/', include('teams.urls')),
 ]

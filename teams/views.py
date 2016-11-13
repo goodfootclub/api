@@ -167,7 +167,7 @@ class TeamDetails(RetrieveUpdateDestroyAPIView):
     [detailed view](?details) is available
 
     # Players
-    Manage plaers roles with [/players](./players) method
+    Manage players roles with [/players](./players) method
     """
     queryset = Team.objects.all()
     lookup_url_kwarg = 'team_id'
