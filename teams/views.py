@@ -23,11 +23,14 @@ class RoleSerializer(ModelSerializer):
         data = super().to_representation(obj)
         request = self.context.get('request', None)
         if request and request.accepted_renderer.format == 'api':
-            data['url'] = reverse(
-                'team-role',
-                (self.context['view'].kwargs['team_id'], obj.id),
-                request=request
-            )
+            try:
+                data['url'] = reverse(
+                    'team-role',
+                    (self.context['view'].kwargs['team_id'], obj.id),
+                    request=request
+                )
+            except KeyError:
+                pass
         return data
 
     def create(self, validated_data):

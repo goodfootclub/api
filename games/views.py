@@ -17,7 +17,7 @@ from rest_framework.serializers import (
 )
 
 from main.exceptions import RelationAlreadyExist
-from teams.views import TeamListSerializer
+from teams.views import TeamListSerializer, TeamDetailsSerializer
 from users.models import User
 from users.views import UserSerializer
 from .models import Game, Location, RsvpStatus
@@ -68,6 +68,9 @@ class RsvpDetailsSerializer(RsvpSerializer):
 
 class GameListSerializer(ModelSerializer):
 
+    teams = TeamListSerializer(many=True)
+    location = LocationSerializer()
+
     class Meta:
         model = Game
         fields = 'id', 'teams', 'datetime', 'location'
@@ -99,7 +102,7 @@ class GameDetailsSerializer(GameSerializer):
 
     players = RsvpDetailsSerializer(source='rsvps', many=True)
     organizer = UserSerializer()
-    teams = TeamListSerializer(many=True)
+    teams = TeamDetailsSerializer(many=True)
     location = LocationSerializer()
 
 
