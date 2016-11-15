@@ -1,24 +1,15 @@
-from django.shortcuts import get_object_or_404
-from django.db.transaction import atomic
 from django.db import IntegrityError
+from django.db.transaction import atomic
 
 from rest_framework.generics import (
     ListCreateAPIView,
-    ListAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.reverse import reverse
-from rest_framework.serializers import (
-    Field,
-    ReadOnlyField,
-    HyperlinkedModelSerializer,
-    ModelSerializer,
-    Serializer,
-)
+from rest_framework.serializers import ModelSerializer, ReadOnlyField
 
 from main.exceptions import RelationAlreadyExist
 from users.views import UserSerializer
-from users.models import User
 from .models import Team, Role
 
 
@@ -56,7 +47,6 @@ class RoleDetailsSerializer(RoleSerializer):
     last_name = ReadOnlyField(source='player.last_name')
 
     class Meta(RoleSerializer.Meta):
-        model = Role
         fields = 'id', 'player', 'role', 'first_name', 'last_name'
 
 
@@ -82,16 +72,6 @@ class TeamSerializer(ModelSerializer):
 
     class Meta:
         model = Team
-
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
-
-        request = self.context.get('request', None)
-        if request and request.accepted_renderer.format == 'api':
-            data['players_url'] = reverse('team-roles', (obj.id, ),
-                                          request=request)
-            data.move_to_end('players_url', False)
-        return data
 
     def to_internal_value(self, data):
         if 'players' not in data:
@@ -167,7 +147,8 @@ class TeamDetails(RetrieveUpdateDestroyAPIView):
     [detailed view](?details) is available
 
     # Players
-    Manage players roles with [/players](./players) method
+    You can update players in this method or manage them separatly on
+    the [teams/{id}/players/](./players) view
     """
     queryset = Team.objects.all()
     lookup_url_kwarg = 'team_id'

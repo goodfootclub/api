@@ -24,6 +24,7 @@ API_METHODS = [
     'api-root',
     'current-user',
     'games-list',
+    'old-games-list',
     'locations-list',
     'old-teams-list',
     'teams-list',

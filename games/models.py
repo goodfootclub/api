@@ -42,6 +42,8 @@ class Game(models.Model):
     location = models.ForeignKey(Location, related_name='games')
     organizer = models.ForeignKey(User, related_name='games_created')
     teams = models.ManyToManyField(Team, related_name='games')
+    players = models.ManyToManyField(User, related_name='games',
+                                     through='RsvpStatus')
 
     class Meta:
         ordering = ['datetime']
@@ -79,9 +81,8 @@ class RsvpStatus(models.Model):
 
     game = models.ForeignKey(Game, related_name='rsvps')
     player = models.ForeignKey(User, related_name='rsvps')
-    status = models.CharField(max_length=3, choices=RSVP_CHOICES,
-                              default=UNCERTAIN)
-    team = models.IntegerField()
+    status = models.IntegerField(choices=RSVP_CHOICES, default=INVITED)
+    team = models.IntegerField(default=2)
 
     class Meta:
         unique_together = 'player', 'game'
