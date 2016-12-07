@@ -54,6 +54,17 @@
       - python-virtualenv
       - python3-dev
 
+      # For Pillow (as in http://pillow.readthedocs.io/en/latest/installation.html#linux-installation)
+      - libtiff5-dev
+      - libjpeg8-dev
+      - zlib1g-dev
+      - libfreetype6-dev
+      - liblcms2-dev
+      - libwebp-dev
+      - tcl8.6-dev
+      - tk8.6-dev
+      - python-tk
+
       # GIS
       - libproj-dev
       - gdal-bin

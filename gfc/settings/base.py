@@ -42,9 +42,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
 
-    # Libs
+    # 3rd party
     'rest_framework',
     'social.apps.django_app.default',
+    'timezone_field',
 
     # Ours
     'main',
@@ -100,6 +101,8 @@ DATABASES = {
 
 
 # Authentication
+
+AUTH_USER_MODEL = 'users.User'
 
 AUTHENTICATION_BACKENDS = (
     'social.backends.facebook.FacebookOAuth2',
