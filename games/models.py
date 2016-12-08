@@ -11,7 +11,6 @@ class Location(models.Model):
         address (String) - address
         gis? (Point) - lat lng coordinates
         name (String) - display name
-
     """
     address = models.CharField(max_length=255)
     gis = models.PointField(null=True)

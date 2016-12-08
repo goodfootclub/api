@@ -16,13 +16,14 @@ class User(AbstractUser):
         (MALE, 'Male'),
     )
 
-    bio = models.TextField()
-    birthday = models.DateField()
+    bio = models.TextField(null=True, blank=True)
+    birthday = models.DateField(null=True)
+    cover = models.ImageField(null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True)
-    img = models.ImageField()
+    img = models.ImageField(null=True)
     phone = models.CharField(max_length=12)
     profile_complete = models.BooleanField(default=False)
-    timezone = TimeZoneField()
+    timezone = TimeZoneField(default='UTC')
 
     class Meta(AbstractUser.Meta):
         pass
