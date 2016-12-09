@@ -116,6 +116,26 @@ SOCIAL_AUTH_FACEBOOK_SCOPE = ['email', 'user_birthday']
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
 SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/'
 
+SOCIAL_AUTH_PIPELINE = (
+    # https://python-social-auth.readthedocs.io/en/latest/pipeline.html
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'social.pipeline.social_auth.social_user',
+    'social.pipeline.user.get_username',
+    # Send a validation email to the user to verify its email address.
+    # 'social.pipeline.mail.mail_validation',
+    'social.pipeline.social_auth.associate_by_email',
+    'social.pipeline.user.create_user',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'social.pipeline.user.user_details',
+
+    # Get extra details from facebook
+    'users.pipeline.facebook_extra_details',
+)
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -146,15 +166,25 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
+        'django-debug.log': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': join_path(SRV_DIR, 'logs', 'django-debug.log'),
         },
+        'app-debug.log': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join_path(SRV_DIR, 'logs', 'app-debug.log'),
+        },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['django-debug.log'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'app': {
+            'handlers': ['app-debug.log'],
             'level': 'DEBUG',
             'propagate': True,
         },
