@@ -7,5 +7,5 @@ from .views import CurrentUser
 
 urlpatterns = [
     # Current user
-    url(r'^current/?$', CurrentUser.as_view(), name='current-user'),
+    url(r'^me/$', CurrentUser.as_view(), name='current-user'),
 ]
