@@ -42,7 +42,7 @@ DEFAULT_COUNT = 50
 
 # A way to tell which users were randomly generated
 USERNAME_PREFIX = '_rndgnd'
-VERSION = 'v002'  # Change this when you update the command
+VERSION = 'v003'  # Change this when you update the command
 VERSIONED_PREFIX = USERNAME_PREFIX + VERSION
 
 # Refer to the https://randomuser.me/documentation for the full list of
@@ -103,9 +103,10 @@ class Command(BaseCommand):
                 email=res['login']['password'],
                 first_name=res['name']['first'].capitalize(),
                 last_name=res['name']['last'].capitalize(),
-                password=res['login']['password'],
                 username=VERSIONED_PREFIX + res['login']['username'],
             )
+
+            user.set_password(res['login']['password'])
 
             img_url = res['picture']['large']
             img_filename = img_url.split('/')[-1]
@@ -115,6 +116,7 @@ class Command(BaseCommand):
             img_temp.flush()
 
             user.img.save(img_filename, File(img_temp))
+            user.save()
 
         self.stdout.write(self.style.SUCCESS(
             'Successfully added "{}" random users'.format(options['count'])
