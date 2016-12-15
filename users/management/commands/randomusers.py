@@ -42,7 +42,7 @@ DEFAULT_COUNT = 50
 
 # A way to tell which users were randomly generated
 USERNAME_PREFIX = '_rndgnd'
-VERSION = 'v003'  # Change this when you update the command
+VERSION = 'v004'  # Change this when you update the command
 VERSIONED_PREFIX = USERNAME_PREFIX + VERSION
 
 # Refer to the https://randomuser.me/documentation for the full list of
@@ -100,7 +100,7 @@ class Command(BaseCommand):
                 phone=phone,
                 profile_complete=True,
                 bio=BIOS[i % len(BIOS)],
-                email=res['login']['password'],
+                email=res['email'],
                 first_name=res['name']['first'].capitalize(),
                 last_name=res['name']['last'].capitalize(),
                 username=VERSIONED_PREFIX + res['login']['username'],
