@@ -1,4 +1,4 @@
-"""Ensure that there are randomly generated users in the system.
+"""Ensure that there are randomly generated users in the system
 
 Data is acquired using https://randomuser.me ♥
 
@@ -38,7 +38,7 @@ BIOS = [
 ]
 
 # Desired number of randomly generated users in the system
-DEFAULT_COUNT = 50
+DEFAULT_COUNT = 100
 
 # A way to tell which users were randomly generated
 USERNAME_PREFIX = '_rndgnd'

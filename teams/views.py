@@ -22,6 +22,7 @@ class RoleSerializer(ModelSerializer):
     def to_representation(self, obj):
         data = super().to_representation(obj)
         request = self.context.get('request', None)
+
         if request and request.accepted_renderer.format == 'api':
             try:
                 data['url'] = reverse(
@@ -123,7 +124,7 @@ class TeamDetailsSerializer(TeamSerializer):
         data = super().to_internal_value(data)
 
         data['managers'] = [
-            1 if isinstance(user, int) else user['id']
+            user if isinstance(user, int) else user['id']
             for user in data.get('managers', [])
         ]
 
