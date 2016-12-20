@@ -19,9 +19,12 @@ from .models import Team, Role
 
 class RoleSerializer(ModelSerializer):
 
+    role_id = ReadOnlyField(source='id')
+    id = ReadOnlyField(source='player_id')
+
     class Meta:
         model = Role
-        fields = 'id', 'player', 'role'
+        fields = 'id', 'role', 'role_id'
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -56,7 +59,9 @@ class RoleDetailsSerializer(RoleSerializer):
     img = ImageField(source='player.img')
 
     class Meta(RoleSerializer.Meta):
-        fields = 'id', 'player', 'role', 'first_name', 'last_name', 'img'
+        fields = RoleSerializer.Meta.fields + (
+            'first_name', 'last_name', 'img'
+        )
 
 
 class TeamListSerializer(ModelSerializer):
