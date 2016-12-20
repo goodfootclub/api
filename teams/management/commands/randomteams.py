@@ -45,10 +45,10 @@ NAMES = [
 ]
 
 # Weighted types (60% male teams, female and coed are 20% each)
-TYPES = [Team.MALE] * 3 + [Team.COED] + [Team.COED]
+TYPES = [Team.MALE] * 3 + [Team.FEMALE] + [Team.COED]
 
 INFO_PREFIX = 'Test team'
-VERSION = ' v002'
+VERSION = ' v003'
 VERSIONED_PREFIX = INFO_PREFIX + VERSION
 
 

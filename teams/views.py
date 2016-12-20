@@ -68,7 +68,7 @@ class TeamListSerializer(ModelSerializer):
 
     class Meta:
         model = Team
-        fields = 'id', 'name'
+        fields = 'id', 'name', 'type'
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
