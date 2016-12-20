@@ -6,10 +6,14 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.reverse import reverse
-from rest_framework.serializers import ModelSerializer, ReadOnlyField
+from rest_framework.serializers import (
+    ModelSerializer,
+    ReadOnlyField,
+    ImageField,
+)
 
 from main.exceptions import RelationAlreadyExist
-from users.views import UserSerializer
+from users.views import PlayerListSerializer
 from .models import Team, Role
 
 
@@ -49,9 +53,10 @@ class RoleDetailsSerializer(RoleSerializer):
 
     first_name = ReadOnlyField(source='player.first_name')
     last_name = ReadOnlyField(source='player.last_name')
+    img = ImageField(source='player.img')
 
     class Meta(RoleSerializer.Meta):
-        fields = 'id', 'player', 'role', 'first_name', 'last_name'
+        fields = 'id', 'player', 'role', 'first_name', 'last_name', 'img'
 
 
 class TeamListSerializer(ModelSerializer):
@@ -117,7 +122,7 @@ class TeamSerializer(ModelSerializer):
 class TeamDetailsSerializer(TeamSerializer):
 
     players = RoleDetailsSerializer(source='role_set', many=True)
-    managers = UserSerializer(many=True)
+    managers = PlayerListSerializer(many=True)
 
     def to_internal_value(self, data):
 
@@ -173,7 +178,7 @@ class RolesList(ListCreateAPIView):
 
 class RoleDetails(RetrieveUpdateDestroyAPIView):
     """Get or update specific player role"""
-    serializer_class = RoleSerializer
+    serializer_class = RoleDetailsSerializer
 
     def get_queryset(self):
         return Role.objects.filter(team_id=self.kwargs['team_id'])
