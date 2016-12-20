@@ -16,13 +16,39 @@ NAMES = [
     'Manchester city',
     'Chelsea',
     'Barcelona',
+    'The Tigers',
+    'Goaldiggers',
+    'Obstruction',
+    'Ball Busters',
+    'Danger Zone',
+    'Blackout',
+    'Team has no name',
+    'Highly Unstable',
+    'Honey Badgers',
+    'The Gunners',
+    'Dirty Martini United',
+    'Team Iceland',
+    'Tangarang United',
+    'Benchwarmers',
+    'Kasik\'s Greatest Hits',
+    'Purple Drank FC',
+    'Deez Nuts!',
+    'Come-Back Kids',
+    'Shark Week',
+    'We\'ll Let You Know',
+    'Cuervos FC',
+    'Team E',
+    'Not the Beeeees!',
+    'Libertad FC',
+    'Team D',
+    'The BlueTang Clan',
 ]
 
 # Weighted types (60% male teams, female and coed are 20% each)
 TYPES = [Team.MALE] * 3 + [Team.COED] + [Team.COED]
 
 INFO_PREFIX = 'Test team'
-VERSION = ' v001'
+VERSION = ' v002'
 VERSIONED_PREFIX = INFO_PREFIX + VERSION
 
 

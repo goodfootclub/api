@@ -1,6 +1,6 @@
 """Add randomly generated players in randomly generated teams
 """
-from random import sample, shuffle, randrange
+from random import sample, randrange
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -24,9 +24,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         teams = Team.objects.filter(info__startswith=INFO_PREFIX)
-        players = list(User.objects.filter(
-            username__startswith=USERNAME_PREFIX
-        ).all())
+        players = User.objects.filter(username__startswith=USERNAME_PREFIX)
+        female_players = list(players.filter(gender=User.FEMALE))
+        male_players = list(players.filter(gender=User.MALE))
+        all_players = male_players + female_players
 
         for team in teams:
             current_members = team.players.all()
@@ -44,12 +45,19 @@ class Command(BaseCommand):
                 .format(players_wanted, subs_wanted, team.name)
             )
 
-            new_members = sample(players, players_wanted + subs_wanted)
-            shuffle(new_members)
+            if team.type == team.MALE:
+                candidates = male_players
+            if team.type == team.FEMALE:
+                candidates = female_players
+            if team.type == team.COED:
+                candidates = all_players
+
+            new_members = sample(candidates, players_wanted + subs_wanted)
             new_players = new_members[:players_wanted]
             new_subs = new_members[players_wanted:]
 
             Role(player=new_players[0], team=team, role=Role.CAPTAIN).save()
+            team.managers.add(new_players[0])
             for player in new_players[1:]:
                 Role(player=player, team=team, role=Role.FIELD).save()
 

@@ -213,12 +213,26 @@
       app_path={{ srv }}/api
       virtualenv={{ srv }}/.env
 
-  - name: Ensure there are some randomly generated users in the system
+  # Test data
+  - name: Some randomly generated users in the system
     django_manage: >
       command=randomusers
       app_path={{ srv }}/api
       virtualenv={{ srv }}/.env
 
+  - name: Some randomly generated teams in the system
+    django_manage: >
+      command=randomteams
+      app_path={{ srv }}/api
+      virtualenv={{ srv }}/.env
+
+  - name: Randomly generated teams have players
+    django_manage: >
+      command=randomplayers
+      app_path={{ srv }}/api
+      virtualenv={{ srv }}/.env
+
+  # Supervisor
   - name: Ensure that Supervisor configuration file is up to date
     template:
       src: supervisord.conf.ini
