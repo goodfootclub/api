@@ -1,6 +1,8 @@
 import os
+import sys
 
-from .base import *
+
+globals().update(vars(sys.modules['settings.base']))
 
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET')
