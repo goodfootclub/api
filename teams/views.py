@@ -79,6 +79,13 @@ class TeamListSerializer(ModelSerializer):
                                   request=request)
         return data
 
+    def create(self, *args, **kwargs):
+        team = super().create(*args, **kwargs)
+        request = self.context.get('request', None)
+        if request:
+            team.managers.add(request.user)
+        return team
+
 
 class TeamSerializer(ModelSerializer):
 
@@ -96,16 +103,15 @@ class TeamSerializer(ModelSerializer):
             role.id: role
             for role in roles_query
         }
-
         roles = []
         for record in data['players']:
             if isinstance(record, int):
-                record = {'player': record}
+                record = roles_by_id.get(record, {'id': record})
             r, created = roles_query.get_or_create(
-                player_id=record['player'], team_id=data['id']
+                player_id=record['id'], team_id=data['id']
             )
             if not created:
-                roles_by_id.pop(r.id)
+                roles_by_id.pop(r.id, None)
             r.role = record.get('role', r.role)
             roles.append(r)
         data['players'] = roles
