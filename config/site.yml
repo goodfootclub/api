@@ -246,10 +246,17 @@
       backup: yes
     notify: update supervisor
 
-  - name: Ensure that Supervisor service is started
-    command: supervisord chdir=/var/run/ creates=supervisor.sock
+  - name: Change owner to the ssh user
+    file:
+      dest: '{{ srv }}'
+      owner: '{{ remote_user }}'
+      recurse: yes
 
   # TODO: ensure that Supervisor starts after a reboot
+  - name: Ensure that Supervisor service is started
+    become: yes
+    become_user: '{{ remote_user }}'
+    shell: supervisord chdir={{ srv }} creates=supervisor.sock
 
   #   _  _ ____ _  _ ___  _    ____ ____ ____
   #   |__| |__| |\ | |  \ |    |___ |__/ [__

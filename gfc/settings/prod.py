@@ -1,11 +1,16 @@
 import os
+import sys
 
-from .base import *
+
+globals().update(vars(sys.modules['gfc.settings']))
 
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET')
 
 DEBUG = False
+TEMPLATE_DEBUG = False
+
+ADMINS = [('Ignat', 'mail@igonato.com')]
 
 ALLOWED_HOSTS = ['goodfoot.club']
 
