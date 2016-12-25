@@ -192,4 +192,14 @@ LOGGING = {
 }
 
 # Emails
+
 EMAIL_SUBJECT_PREFIX = '[GoodFootClub] '
+
+
+# ReST framework
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
