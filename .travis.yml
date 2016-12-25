@@ -6,7 +6,9 @@ notifications:
   slack: gffc:oVo9Dqq6azm2JGu6Wa052sQC
 
 addons:
-  ssh_known_hosts: dev.goodfoot.club
+  ssh_known_hosts:
+    - goodfoot.club
+    - dev.goodfoot.club
 
 env:
   global:
