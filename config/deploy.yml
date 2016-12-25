@@ -9,17 +9,30 @@
   vars:
     deploy: true
     repo: https://github.com/goodfootclub/api.git
+    branch: develop
+    env: dev
 
   tasks:
+    # TODO: should use synchronize module instead of git
   - name: Run apt-get update
     apt: update_cache=yes
 
   - name: Ensure that git is installed
     apt: name=git state=present
 
+  - name: Use master branch for production
+      set_fact:
+        branch: 'master'
+      when: env == 'prod'
+
   - name: Ensure that project files are updated
     # TODO: replace with syncronize, makes more sense
     # http://docs.ansible.com/ansible/synchronize_module.html
-    git: repo={{ repo }} dest=/home/ubuntu/api force=yes
+    git: repo={{ repo }} version={{ branch }} dest=/home/ubuntu/api force=yes
 
-- include: site.yml srv=/home/ubuntu remote_user=ubuntu use_ssl=true
+- include: >
+    site.yml
+    srv=/home/ubuntu
+    remote_user=ubuntu
+    use_ssl=true
+    env={{ env }}

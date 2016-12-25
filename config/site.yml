@@ -14,11 +14,12 @@
     db_name: '{{ project_name }}'
     db_password: '{{ project_name }}'
     db_user: '{{ project_name }}'
+    env: vagrant
+    host: '{{ inventory_hostname }}'
     project_name: gfc
     remote_user: vagrant
     srv: /home/vagrant
     use_ssl: false
-    host: '{{ inventory_hostname }}'
 
   become: yes
   become_user: root
@@ -80,6 +81,8 @@
     pip:
       name: tailon
       state: 'latest'
+    when: env != 'prod'
+
 
   - name: Ensure that project python requirements are installed
     pip:
@@ -219,18 +222,21 @@
       command=randomusers
       app_path={{ srv }}/api
       virtualenv={{ srv }}/.env
+    when: env != 'prod'
 
   - name: Some randomly generated teams in the system
     django_manage: >
       command=randomteams
       app_path={{ srv }}/api
       virtualenv={{ srv }}/.env
+    when: env != 'prod'
 
   - name: Randomly generated teams have players
     django_manage: >
       command=randomplayers
       app_path={{ srv }}/api
       virtualenv={{ srv }}/.env
+    when: env != 'prod'
 
   # Supervisor
   - name: Ensure that Supervisor configuration file is up to date
@@ -242,6 +248,8 @@
 
   - name: Ensure that Supervisor service is started
     command: supervisord chdir=/var/run/ creates=supervisor.sock
+
+  # TODO: ensure that Supervisor starts after a reboot
 
   #   _  _ ____ _  _ ___  _    ____ ____ ____
   #   |__| |__| |\ | |  \ |    |___ |__/ [__

@@ -32,11 +32,19 @@ before_deploy:
     openssl aes-256-cbc -K $encrypted_b483be284343_key -iv
     $encrypted_b483be284343_iv -in config/ssh_key.enc -out config/ssh_key -d
   - chmod 600 config/ssh_key
-  - echo dev.goodfoot.club > inventory
+  - echo dev.goodfoot.club > inventory_dev
+  - echo goodfoot.club > inventory_prod
 
 deploy:
   provider: script
   skip_cleanup: true
-  script: ansible-playbook -i inventory config/deploy.yml
+  script: ansible-playbook -i inventory_dev config/deploy.yml -e "env=dev"
+  on:
+    branch: develop
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: ansible-playbook -i inventory_prod config/deploy.yml -e "env=prod"
   on:
     branch: master
