@@ -21,9 +21,9 @@
     apt: name=git state=present
 
   - name: Use master branch for production
-      set_fact:
-        branch: 'master'
-      when: env == 'prod'
+    set_fact:
+      branch: 'master'
+    when: env == 'prod'
 
   - name: Ensure that project files are updated
     # TODO: replace with syncronize, makes more sense
