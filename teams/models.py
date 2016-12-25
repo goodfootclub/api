@@ -26,9 +26,9 @@ class Team(models.Model):
         (MALE, 'Male'),
     )
 
-    info = models.CharField(max_length=255, null=True, blank=True)
+    info = models.CharField(max_length=1000, null=True, blank=True)
     managers = models.ManyToManyField(User, related_name='managed_teams')
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=30)
     players = models.ManyToManyField(User, related_name='teams',
                                      through='Role')
     slots_female = models.IntegerField(null=True, default=0)
