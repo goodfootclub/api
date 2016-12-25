@@ -247,7 +247,7 @@
     notify: update supervisor
 
   - name: Ensure that Supervisor service is started
-    command: supervisord chdir=/var/run/ creates=supervisor.sock
+    shell: supervisord chdir=/var/run/ creates=supervisor.sock
 
   # TODO: ensure that Supervisor starts after a reboot
 
