@@ -251,6 +251,14 @@
 
   # TODO: ensure that Supervisor starts after a reboot
 
+
+  - name: Change owner to the ssh user
+    file:
+      dest: '{{ srv }}'
+      owner: '{{ remote_user }}'
+      # group: groupx
+      recurse: yes
+
   #   _  _ ____ _  _ ___  _    ____ ____ ____
   #   |__| |__| |\ | |  \ |    |___ |__/ [__
   #   |  | |  | | \| |__/ |___ |___ |  \ ___]
