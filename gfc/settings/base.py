@@ -193,7 +193,7 @@ LOGGING = {
 
 # Emails
 
-EMAIL_SUBJECT_PREFIX = '[GoodFootClub] '
+EMAIL_SUBJECT_PREFIX = '[Good Foot Club (DEVELOPMENT)] '
 
 
 # ReST framework
