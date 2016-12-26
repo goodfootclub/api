@@ -9,6 +9,7 @@ from rest_framework.reverse import reverse
 from rest_framework.serializers import (
     ModelSerializer,
     ReadOnlyField,
+    IntegerField,
     ImageField,
 )
 
@@ -20,7 +21,7 @@ from .models import Team, Role
 class RoleSerializer(ModelSerializer):
 
     role_id = ReadOnlyField(source='id')
-    id = ReadOnlyField(source='player_id')
+    id = IntegerField(source='player_id')
 
     class Meta:
         model = Role
@@ -56,7 +57,7 @@ class RoleDetailsSerializer(RoleSerializer):
 
     first_name = ReadOnlyField(source='player.first_name')
     last_name = ReadOnlyField(source='player.last_name')
-    img = ImageField(source='player.img')
+    img = ImageField(source='player.img', read_only=True)
 
     class Meta(RoleSerializer.Meta):
         fields = RoleSerializer.Meta.fields + (
