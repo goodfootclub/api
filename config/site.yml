@@ -258,6 +258,11 @@
     become_user: '{{ remote_user }}'
     shell: supervisord chdir={{ srv }} creates=supervisor.sock
 
+  - name: Reload supervisor processes
+    become: yes
+    become_user: '{{ remote_user }}'
+    shell: supervisorctl restart all
+
   #   _  _ ____ _  _ ___  _    ____ ____ ____
   #   |__| |__| |\ | |  \ |    |___ |__/ [__
   #   |  | |  | | \| |__/ |___ |___ |  \ ___]

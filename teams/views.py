@@ -181,7 +181,10 @@ class TeamDetails(RetrieveUpdateDestroyAPIView):
 
 
 class RolesList(ListCreateAPIView):
-    """List of players on the team"""
+    """List of players on the team
+
+    Add a player by POSTing to this endpoint
+    """
     serializer_class = RoleDetailsSerializer
 
     def get_queryset(self):
