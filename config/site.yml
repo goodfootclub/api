@@ -216,26 +216,16 @@
       app_path={{ srv }}/api
       virtualenv={{ srv }}/.env
 
-  # Test data
-  - name: Some randomly generated users in the system
+  - name: Generate random data for testing and development
     django_manage: >
-      command=randomusers
+      command={{ item }}
       app_path={{ srv }}/api
       virtualenv={{ srv }}/.env
-    when: env != 'prod'
-
-  - name: Some randomly generated teams in the system
-    django_manage: >
-      command=randomteams
-      app_path={{ srv }}/api
-      virtualenv={{ srv }}/.env
-    when: env != 'prod'
-
-  - name: Randomly generated teams have players
-    django_manage: >
-      command=randomplayers
-      app_path={{ srv }}/api
-      virtualenv={{ srv }}/.env
+    with_items:
+      - randomusers
+      - randomteams
+      - randomplayers
+      - randomlocations
     when: env != 'prod'
 
   # Supervisor
