@@ -226,6 +226,7 @@
       - randomteams
       - randomplayers
       - randomlocations
+      - randomgames
     when: env != 'prod'
 
   # Supervisor
