@@ -154,3 +154,9 @@ class RsvpDetails(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return RsvpStatus.objects.filter(game_id=self.kwargs['game_id'])
+
+
+class LocationsList(ListCreateAPIView):
+    serializer_class = LocationSerializer
+    queryset = Location.objects.all()
+

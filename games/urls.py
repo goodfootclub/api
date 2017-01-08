@@ -1,7 +1,9 @@
 """api/games URLs"""
 from django.conf.urls import url
 
-from .views import GamesList, GameDetails, RsvpsList, RsvpDetails
+from .views import (
+    GamesList, GameDetails, RsvpsList, RsvpDetails, LocationsList
+)
 
 
 urlpatterns = [url(
@@ -20,4 +22,8 @@ urlpatterns = [url(
     r'^(?P<game_id>\d+)/players/(?P<pk>\d+)/$',
     RsvpDetails.as_view(),
     name='game-rsvp'
+), url(
+    r'^locations/$',
+    LocationsList.as_view(),
+    name='locations-list'
 )]
