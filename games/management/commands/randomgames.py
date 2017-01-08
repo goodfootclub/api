@@ -1,15 +1,16 @@
 """Ensure that there are randomly generated games in the system
 """
-from datetime import datetime
 from random import choice
 
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 from users.models import User
 from teams.models import Team
 from games.models import Game, Location
 
 from users.management.commands.randomusers import USERNAME_PREFIX
+from .randomlocations import VERSIONED_PREFIX as LOCATIONS_PREFIX
 
 
 # Desired number of randomly generated games in the system
@@ -17,7 +18,7 @@ DEFAULT_COUNT = 100
 
 # A way to tell which games were randomly generated
 DESC_PREFIX = '_rndgnd'
-VERSION = 'v001'  # Change this when you update the command
+VERSION = 'v002'  # Change this when you update the command
 VERSIONED_PREFIX = DESC_PREFIX + VERSION
 
 
@@ -51,11 +52,14 @@ class Command(BaseCommand):
             if count == 0:
                 return
 
-        locations = list(Location.objects.all())
+        locations = list(Location.objects.filter(
+            address__startswith=LOCATIONS_PREFIX
+        ))
         users = list(User.objects.filter(
             username__startswith=USERNAME_PREFIX
         ))
-        now = datetime.now()
+
+        now = timezone.now()
 
         for i in range(count):
             Game(
