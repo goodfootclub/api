@@ -9,17 +9,20 @@ from rest_framework.generics import (
 )
 from rest_framework.reverse import reverse
 from rest_framework.serializers import (
+    ChoiceField,
     Field,
-    ReadOnlyField,
     HyperlinkedModelSerializer,
+    IntegerField,
+    ImageField,
     ModelSerializer,
+    ReadOnlyField,
     Serializer,
 )
 
 from main.exceptions import RelationAlreadyExist
 from teams.views import TeamListSerializer, TeamDetailsSerializer
 from users.models import User
-from users.views import UserSerializer
+from users.views import PlayerListSerializer
 from .models import Game, Location, RsvpStatus
 
 
@@ -30,10 +33,13 @@ class LocationSerializer(ModelSerializer):
 
 
 class RsvpSerializer(ModelSerializer):
+    rsvp = ChoiceField(RsvpStatus.RSVP_CHOICES, source='status')
+    rsvp_id = ReadOnlyField(source='id')
+    id = IntegerField(source='player_id')
 
     class Meta:
         model = RsvpStatus
-        fields = 'id', 'player', 'status', 'team'
+        fields = 'id', 'rsvp_id', 'rsvp', 'team'
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -61,9 +67,12 @@ class RsvpDetailsSerializer(RsvpSerializer):
 
     first_name = ReadOnlyField(source='player.first_name')
     last_name = ReadOnlyField(source='player.last_name')
+    img = ImageField(source='player.img', read_only=True)
 
     class Meta(RsvpSerializer.Meta):
-        fields = RsvpSerializer.Meta.fields + ('first_name', 'last_name')
+        fields = RsvpSerializer.Meta.fields + (
+            'first_name', 'last_name', 'img'
+        )
 
 
 class GameListSerializer(ModelSerializer):
@@ -101,7 +110,7 @@ class GameSerializer(ModelSerializer):
 class GameDetailsSerializer(GameSerializer):
 
     players = RsvpDetailsSerializer(source='rsvps', many=True)
-    organizer = UserSerializer()
+    organizer = PlayerListSerializer()
     teams = TeamDetailsSerializer(many=True)
     location = LocationSerializer()
 
