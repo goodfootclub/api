@@ -1,3 +1,6 @@
+import logging
+import pprint
+
 from django.db import IntegrityError
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
@@ -24,6 +27,9 @@ from teams.views import TeamListSerializer, TeamDetailsSerializer
 from users.models import User
 from users.views import PlayerListSerializer
 from .models import Game, Location, RsvpStatus
+
+
+logger = logging.getLogger('app.games.views')
 
 
 class LocationSerializer(ModelSerializer):
@@ -75,7 +81,7 @@ class RsvpDetailsSerializer(RsvpSerializer):
         )
 
 
-class GameListSerializer(ModelSerializer):
+class GameListCreateSerializer(ModelSerializer):
 
     teams = TeamListSerializer(many=True)
     location = LocationSerializer()
@@ -92,6 +98,28 @@ class GameListSerializer(ModelSerializer):
             data['url'] = reverse('game-detail', (obj.id, ),
                                   request=request)
         return data
+
+    def create(self, validated_data):
+        location_data = validated_data['location']
+
+        try:
+            location_obj = Location.objects.get(
+                name=location_data['name'],
+                address=location_data['address'],
+            )
+        except Location.DoesNotExist:
+            location_obj = Location.objects.create(
+                name=location_data['name'],
+                address=location_data['address'],
+            )
+
+        request = self.context.get('request', None)
+
+        return Game.objects.create(
+            location=location_obj,
+            datetime=validated_data['datetime'],
+            organizer=request.user,
+        )
 
 
 class GameSerializer(ModelSerializer):
@@ -117,7 +145,7 @@ class GameDetailsSerializer(GameSerializer):
 
 class GamesList(ListCreateAPIView):
     """Get a list of existing game events or make a new one"""
-    serializer_class = GameListSerializer
+    serializer_class = GameListCreateSerializer
     queryset = Game.objects.all()
 
 
