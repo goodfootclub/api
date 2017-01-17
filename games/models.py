@@ -1,3 +1,4 @@
+
 from django.contrib.gis.db import models
 
 from teams.models import Team
@@ -12,7 +13,7 @@ class Location(models.Model):
         gis? (Point) - lat lng coordinates
         name (String) - display name
     """
-    address = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True, null=True)
     gis = models.PointField(null=True)
     name = models.CharField(max_length=255)
 
