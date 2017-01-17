@@ -263,4 +263,6 @@
     service: name=nginx state=restarted
 
   - name: update supervisor
+    become: yes
+    become_user: '{{ remote_user }}'
     command: supervisorctl update
