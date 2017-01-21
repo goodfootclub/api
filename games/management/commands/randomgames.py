@@ -1,13 +1,14 @@
 """Ensure that there are randomly generated games in the system
 """
-from random import choice
+from random import choice, sample, randrange
+from datetime import timedelta
 
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from users.models import User
 from teams.models import Team
-from games.models import Game, Location
+from games.models import Game, Location, RsvpStatus
 
 from users.management.commands.randomusers import USERNAME_PREFIX
 from .randomlocations import VERSIONED_PREFIX as LOCATIONS_PREFIX
@@ -18,7 +19,7 @@ DEFAULT_COUNT = 100
 
 # A way to tell which games were randomly generated
 DESC_PREFIX = '_rndgnd'
-VERSION = 'v002'  # Change this when you update the command
+VERSION = 'v003'  # Change this when you update the command
 VERSIONED_PREFIX = DESC_PREFIX + VERSION
 
 
@@ -62,13 +63,18 @@ class Command(BaseCommand):
         now = timezone.now()
 
         for i in range(count):
-            Game(
-                datetime=now,
+            game = Game.objects.create(
+                datetime=now + timedelta(days=randrange(10)),
                 description=VERSIONED_PREFIX,
                 duration=choice([40, 45, 90]),
                 location=choice(locations),
                 organizer=choice(users),
-            ).save()
+            )
+
+            RsvpStatus.objects.bulk_create([
+                RsvpStatus(game=game, player=player, status=choice([1, 2]))
+                for player in sample(users, choice([11 * 2, 8 * 2]))
+            ])
 
         self.stdout.write(self.style.SUCCESS(
             'Successfully created "{}" random games'.format(options['count'])
