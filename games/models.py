@@ -46,7 +46,7 @@ class Game(models.Model):
                                      through='RsvpStatus')
 
     class Meta:
-        ordering = ['datetime']
+        ordering = ['-datetime']
 
 
 class RsvpStatus(models.Model):
