@@ -26,7 +26,7 @@ from rest_framework.serializers import (
 from main.exceptions import RelationAlreadyExist
 from teams.views import TeamListSerializer, TeamDetailsSerializer
 from users.models import User
-from users.views import PlayerListSerializer
+from users.serializers import PlayerListSerializer
 from .models import Game, Location, RsvpStatus
 
 
