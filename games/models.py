@@ -1,4 +1,3 @@
-
 from django.contrib.gis.db import models
 
 from teams.models import Team
@@ -46,7 +45,7 @@ class Game(models.Model):
                                      through='RsvpStatus')
 
     class Meta:
-        ordering = ['-datetime']
+        ordering = ['datetime']
 
 
 class RsvpStatus(models.Model):
