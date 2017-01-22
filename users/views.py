@@ -4,7 +4,6 @@ CurrentUser (api/users/current) - shows info about logged in user or 401s.
 """
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from rest_framework.generics import (
     RetrieveUpdateAPIView,
     ListAPIView,
@@ -12,34 +11,17 @@ from rest_framework.generics import (
 )
 
 from .models import User
-
-
-class UserSerializer(ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('id', 'bio', 'birthday', 'cover', 'email', 'first_name',
-                  'gender', 'img', 'last_name', 'phone',)
-
-
-class PlayerListSerializer(ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = 'id', 'bio', 'first_name', 'img', 'last_name'
-
-
-class PlayerDetailsSerializer(ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = 'id', 'bio', 'cover', 'first_name', 'img', 'last_name'
+from .serializers import (
+    CurrentUserSerializer,
+    PlayerListSerializer,
+    PlayerDetailsSerializer
+)
 
 
 class CurrentUser(RetrieveUpdateAPIView):
-    """Information about currently logged in user."""
-    permission_classes = (IsAuthenticated, )
-    serializer_class = UserSerializer
+    """Information about currently logged in user.
+    """
+    serializer_class = CurrentUserSerializer
 
     def get_object(self):
         return self.request.user

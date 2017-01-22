@@ -14,7 +14,8 @@ from rest_framework.serializers import (
 )
 
 from main.exceptions import RelationAlreadyExist
-from users.views import PlayerListSerializer
+from users.serializers import PlayerListSerializer
+
 from .models import Team, Role
 
 
@@ -132,7 +133,6 @@ class TeamSerializer(ModelSerializer):
 
 
 class TeamDetailsSerializer(TeamSerializer):
-
     players = RoleDetailsSerializer(source='role_set', many=True)
     managers = PlayerListSerializer(many=True)
 
