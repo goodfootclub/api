@@ -79,10 +79,12 @@ class RsvpStatus(models.Model):
         (UNCERTAIN, 'Not sure'),
     )
 
+    NO_TEAM = 2
+
     game = models.ForeignKey(Game, related_name='rsvps')
     player = models.ForeignKey(User, related_name='rsvps')
     status = models.IntegerField(choices=RSVP_CHOICES, default=INVITED)
-    team = models.IntegerField(default=2)
+    team = models.IntegerField(default=NO_TEAM)
 
     class Meta:
         unique_together = 'player', 'game'
