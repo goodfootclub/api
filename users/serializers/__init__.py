@@ -1,5 +1,5 @@
-from .player import *
-from .user import *
+from .players import *
+from .users import *
 
 
-__all__ = [player.__all__ + user.__all__]
+__all__ = [players.__all__ + users.__all__]

@@ -16,146 +16,30 @@ from rest_framework.serializers import (
     ChoiceField,
     Field,
     HyperlinkedModelSerializer,
-    IntegerField,
     ImageField,
+    IntegerField,
     ModelSerializer,
     ReadOnlyField,
     Serializer,
+    ValidationError,
 )
 
 from main.exceptions import RelationAlreadyExist
 from teams.views import TeamListSerializer, TeamDetailsSerializer
 from users.models import User
 from users.serializers import PlayerListSerializer
-from .models import Game, Location, RsvpStatus
+from ..models import Game, Location, RsvpStatus
+from ..serializers import (
+    GameDetailsSerializer,
+    GameListCreateSerializer,
+    GameSerializer,
+    LocationSerializer,
+    RsvpDetailsSerializer,
+    RsvpSerializer,
+)
 
 
 logger = logging.getLogger('app.games.views')
-
-
-class LocationSerializer(ModelSerializer):
-
-    class Meta:
-        model = Location
-
-
-class RsvpSerializer(ModelSerializer):
-    rsvp = ChoiceField(RsvpStatus.RSVP_CHOICES, source='status')
-    rsvp_id = ReadOnlyField(source='id')
-
-    class Meta:
-        model = RsvpStatus
-        fields = 'rsvp_id', 'rsvp',
-
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
-        request = self.context.get('request', None)
-        if request and request.accepted_renderer.format == 'api':
-            data['url'] = reverse(
-                'game-rsvp',
-                (self.context['view'].kwargs['game_id'], obj.id),
-                request=request
-            )
-        return data
-
-    def create(self, validated_data):
-        if 'game_id' not in validated_data:
-            validated_data.update(self.context['view'].kwargs)
-        try:
-            return super().create(validated_data)
-        except IntegrityError as e:
-            raise RelationAlreadyExist(
-                detail=e.args[0].split('DETAIL:  ')[1]
-            )
-
-
-class RsvpListCreateSerializer(RsvpSerializer):
-    id = IntegerField(source='player_id')
-
-    class Meta(RsvpSerializer.Meta):
-        fields = 'id', 'rsvp_id', 'rsvp', 'team'
-
-
-class RsvpDetailsSerializer(RsvpListCreateSerializer):
-
-    first_name = ReadOnlyField(source='player.first_name')
-    last_name = ReadOnlyField(source='player.last_name')
-    img = ImageField(source='player.img', read_only=True)
-
-    class Meta(RsvpListCreateSerializer.Meta):
-        fields = RsvpListCreateSerializer.Meta.fields + (
-            'first_name', 'last_name', 'img'
-        )
-
-
-class GameListCreateSerializer(ModelSerializer):
-
-    teams = TeamListSerializer(many=True)
-    location = LocationSerializer()
-
-    class Meta:
-        model = Game
-        fields = 'id', 'teams', 'datetime', 'location'
-
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
-
-        request = self.context.get('request', None)
-        if request and request.accepted_renderer.format == 'api':
-            data['url'] = reverse('game-detail', (obj.id, ),
-                                  request=request)
-        return data
-
-    def create(self, validated_data):
-        location_data = validated_data['location']
-
-        try:
-            location_obj = Location.objects.get(
-                name=location_data['name'],
-                address=location_data['address'],
-            )
-        except Location.DoesNotExist:
-            location_obj = Location.objects.create(
-                name=location_data['name'],
-                address=location_data['address'],
-            )
-
-        request = self.context.get('request', None)
-
-        game = Game.objects.create(
-            location=location_obj,
-            datetime=validated_data['datetime'],
-            organizer=request.user,
-        )
-
-        RsvpStatus.objects.create(
-            game=game,
-            status=RsvpStatus.GOING,
-            player=request.user,
-        )
-
-        return game
-
-
-class GameSerializer(ModelSerializer):
-
-    players = RsvpListCreateSerializer(source='rsvps', many=True)
-
-    class Meta:
-        model = Game
-
-    def to_internal_value(self, data):
-        # Rsvps are managed with a separate view
-        data.pop('players', None)
-        return data
-
-
-class GameDetailsSerializer(GameSerializer):
-
-    players = RsvpDetailsSerializer(source='rsvps', many=True)
-    organizer = PlayerListSerializer()
-    teams = TeamDetailsSerializer(many=True)
-    location = LocationSerializer()
 
 
 class GamesList(ListCreateAPIView):

@@ -22,6 +22,9 @@ class Location(models.Model):
     def __str__(self):
         return "{name}".format(name=self.name)
 
+    class Meta:
+        unique_together = ('address', 'name')
+
 
 class Game(models.Model):
     """Game event
