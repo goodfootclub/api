@@ -12,7 +12,7 @@ TEMPLATE_DEBUG = False
 
 ADMINS = [('Ignat', 'mail@igonato.com')]
 
-ALLOWED_HOSTS = ['dev.goodfoot.club']
+ALLOWED_HOSTS = ['dev.goodfoot.club', 'localhost']
 
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.mailgun.org'
