@@ -2,6 +2,7 @@
 
 CurrentUser (api/users/current) - shows info about logged in user or 401s.
 """
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -28,6 +29,7 @@ class CurrentUser(RetrieveUpdateAPIView):
 
 
 class PlayerList(ListAPIView):
+    pagination_class = LimitOffsetPagination
     serializer_class = PlayerListSerializer
     queryset = User.objects.all()
 
