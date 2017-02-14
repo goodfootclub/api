@@ -30,7 +30,6 @@ class CurrentUser(RetrieveUpdateAPIView):
 
 
 class PlayerList(ListAPIView):
-    pagination_class = LimitOffsetPagination
     serializer_class = PlayerListSerializer
 
     def get_queryset(self):
