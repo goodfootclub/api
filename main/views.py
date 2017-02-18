@@ -8,7 +8,7 @@ from collections import OrderedDict
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
-
+from rest_framework.exceptions import APIException
 
 # API endpoints names (as in 'urls.py' files) to display on ApiRoot
 API_METHODS = [
@@ -18,6 +18,7 @@ API_METHODS = [
     'locations-list',
     'player-list',
     'teams-list',
+    'api-error',
 ]
 
 
@@ -41,3 +42,13 @@ class ApiRoot(APIView):
             data[method] = reverse(method, request=request, format=format)
 
         return Response(data)
+
+
+class ApiError(APIView):
+    """
+    Test error view. Always results in a 500 error
+    """
+
+    def get(self, request, format=None):
+        """List of available API endpints"""
+        raise APIException("A very bad error just happened :(")
