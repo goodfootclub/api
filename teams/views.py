@@ -1,3 +1,4 @@
+from django.contrib.postgres.search import SearchVector
 from django.db import IntegrityError
 from django.db.transaction import atomic
 
@@ -157,7 +158,17 @@ class TeamDetailsSerializer(TeamSerializer):
 class TeamsList(ListCreateAPIView):
     """Get a list of existing teams or make a new one"""
     serializer_class = TeamListSerializer
-    queryset = Team.objects.all()
+
+    def get_queryset(self):
+        """Apply a simple text search to the Player query
+        """
+        queryset = Team.objects.all()
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.annotate(
+                search=SearchVector('name', 'info'),
+            ).filter(search=search)
+        return queryset
 
 
 class TeamDetails(RetrieveUpdateDestroyAPIView):

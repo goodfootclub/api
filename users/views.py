@@ -37,7 +37,7 @@ class PlayerList(ListAPIView):
         """
         queryset = User.objects.all()
         search = self.request.query_params.get('search', None)
-        if search is not None:
+        if search:
             queryset = queryset.annotate(
                 search=SearchVector('first_name', 'last_name', 'bio'),
             ).filter(search=search)
