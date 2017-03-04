@@ -12,20 +12,20 @@ from main.exceptions import RelationAlreadyExist
 from ..models import Role
 
 
-__all__ = [
-    'RoleSerializer',
-    'RoleDetailsSerializer',
-]
+__all__ = ['RoleSerializer']
 
 
 class RoleSerializer(ModelSerializer):
 
     role_id = ReadOnlyField(source='id')
-    id = IntegerField(source='player_id')
+    id = ReadOnlyField(source='player_id')
+    first_name = ReadOnlyField(source='player.first_name')
+    last_name = ReadOnlyField(source='player.last_name')
+    img = ImageField(source='player.img', read_only=True)
 
     class Meta:
         model = Role
-        fields = 'id', 'role', 'role_id'
+        fields = 'id', 'role', 'role_id', 'first_name', 'last_name', 'img'
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -34,8 +34,8 @@ class RoleSerializer(ModelSerializer):
         if request and request.accepted_renderer.format == 'api':
             try:
                 data['url'] = reverse(
-                    'team-role',
-                    (self.context['view'].kwargs['team_id'], obj.id),
+                    'team-role-detail',
+                    (obj.team_id, obj.id),
                     request=request
                 )
             except KeyError:
@@ -51,15 +51,3 @@ class RoleSerializer(ModelSerializer):
             raise RelationAlreadyExist(
                 detail=e.args[0].split('DETAIL:  ')[1]
             )
-
-
-class RoleDetailsSerializer(RoleSerializer):
-
-    first_name = ReadOnlyField(source='player.first_name')
-    last_name = ReadOnlyField(source='player.last_name')
-    img = ImageField(source='player.img', read_only=True)
-
-    class Meta(RoleSerializer.Meta):
-        fields = RoleSerializer.Meta.fields + (
-            'first_name', 'last_name', 'img'
-        )

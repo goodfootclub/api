@@ -9,7 +9,7 @@ from rest_framework.serializers import (
 )
 
 from users.serializers import PlayerListSerializer
-from . import RoleSerializer, RoleDetailsSerializer
+from . import RoleSerializer
 from ..models import Team
 
 
@@ -18,29 +18,6 @@ __all__ = [
     'TeamListSerializer',
     'TeamSerializer',
 ]
-
-
-class TeamListSerializer(ModelSerializer):
-
-    class Meta:
-        model = Team
-        fields = 'id', 'name', 'info', 'type'
-
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
-
-        request = self.context.get('request', None)
-        if request and request.accepted_renderer.format == 'api':
-            data['url'] = reverse('team-detail', (obj.id, ),
-                                  request=request)
-        return data
-
-    def create(self, *args, **kwargs):
-        team = super().create(*args, **kwargs)
-        request = self.context.get('request', None)
-        if request:
-            team.managers.add(request.user)
-        return team
 
 
 class TeamSerializer(ModelSerializer):
@@ -86,8 +63,31 @@ class TeamSerializer(ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class TeamListSerializer(ModelSerializer):
+
+    class Meta:
+        model = Team
+        fields = 'id', 'name', 'info', 'type'
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+
+        request = self.context.get('request', None)
+        if request and request.accepted_renderer.format == 'api':
+            data['url'] = reverse('team-detail', (obj.id, ),
+                                  request=request)
+        return data
+
+    def create(self, *args, **kwargs):
+        team = super().create(*args, **kwargs)
+        request = self.context.get('request', None)
+        if request:
+            team.managers.add(request.user)
+        return team
+
+
 class TeamDetailsSerializer(TeamSerializer):
-    players = RoleDetailsSerializer(source='role_set', many=True)
+    players = RoleSerializer(source='role_set', many=True)
     managers = PlayerListSerializer(many=True)
 
     def to_internal_value(self, data):

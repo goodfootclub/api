@@ -9,6 +9,6 @@ urlpatterns = [
     url(r'^error/$', ApiError.as_view(), name='api-error'),
 
     url(r'^users/', include('users.urls')),
-    url(r'^teams/', include('teams.urls')),
+    url(r'^', include('teams.urls')),
     url(r'^games/', include('games.urls')),
 ]

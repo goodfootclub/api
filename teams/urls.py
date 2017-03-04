@@ -1,23 +1,15 @@
 """api/teams URLs"""
-from django.conf.urls import url
+from django.conf.urls import url, include
+from rest_framework_nested import routers
 
-from .views import TeamsList, TeamDetails, RolesList, RoleDetails
+from .views import TeamsViewSet, RolesViewSet
 
 
-urlpatterns = [url(
-    r'^$',
-    TeamsList.as_view(),
-    name='teams-list'
-), url(
-    r'^(?P<team_id>\d+)/$',
-    TeamDetails.as_view(),
-    name='team-detail'
-), url(
-    r'^(?P<team_id>\d+)/players/$',
-    RolesList.as_view(),
-    name='team-roles'
-), url(
-    r'^(?P<team_id>\d+)/players/(?P<pk>\d+)/$',
-    RoleDetails.as_view(),
-    name='team-role'
-)]
+router = routers.SimpleRouter()
+router.register(r'teams', TeamsViewSet)
+
+teams_router = routers.NestedSimpleRouter(router, r'teams', lookup='team')
+teams_router.register(r'players', RolesViewSet, base_name='team-role')
+# TODO: teams_router.register(r'games', GamesViewSet)
+
+urlpatterns = router.urls + teams_router.urls

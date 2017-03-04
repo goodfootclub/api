@@ -1,20 +1,54 @@
 from django.contrib.postgres.search import SearchVector
 
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
+from rest_framework.response import Response
 
+from main.viewsets import AppViewSet
 
 from .models import Team, Role
 from .serializers import (
-    RoleDetailsSerializer,
     RoleSerializer,
     TeamDetailsSerializer,
     TeamListSerializer,
     TeamSerializer,
 )
 # from games.views import GamesList
+
+
+class TeamsViewSet(AppViewSet):
+    """
+    # Teams api
+
+    # Players
+    You can update players in this method or manage them separatly on
+    the [teams/{id}/players/](./players) view
+
+
+    TODO
+    """
+    queryset = Team.objects.all()
+    # serializer_class = TeamDetailsSerializer
+    serializer_class = TeamDetailsSerializer
+    serializer_classes = {
+        'list': TeamListSerializer,
+        'create': TeamSerializer,
+    }
+
+
+class RolesViewSet(AppViewSet):
+    """ Testing VeiwSets """
+    queryset = Role.objects.all()
+    # serializer_class = TeamDetailsSerializer
+    serializer_class = RoleSerializer
+    serializer_classes = {
+    }
+
+    def get_queryset(self):
+        return Role.objects.filter(team_id=self.kwargs['team_pk'])
 
 
 class TeamsList(ListCreateAPIView):
@@ -58,15 +92,7 @@ class RolesList(ListCreateAPIView):
 
     Add a player by POSTing to this endpoint
     """
-    serializer_class = RoleDetailsSerializer
-
-    def get_queryset(self):
-        return Role.objects.filter(team_id=self.kwargs['team_id'])
-
-
-class RoleDetails(RetrieveUpdateDestroyAPIView):
-    """Get or update specific player role"""
-    serializer_class = RoleDetailsSerializer
+    serializer_class = RoleSerializer
 
     def get_queryset(self):
         return Role.objects.filter(team_id=self.kwargs['team_id'])
