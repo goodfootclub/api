@@ -1,24 +1,8 @@
-import logging
-import pprint
 from datetime import datetime
 
-import django_filters
-from django.db import IntegrityError
-from django.db.transaction import atomic
-from django.shortcuts import get_object_or_404
-from rest_framework.generics import (
-    ListCreateAPIView,
-    ListAPIView,
-    RetrieveUpdateDestroyAPIView,
-)
 from rest_framework import permissions
-from rest_framework.reverse import reverse
 
 from main.viewsets import AppViewSet
-from main.exceptions import RelationAlreadyExist
-from teams.views import TeamListSerializer, TeamDetailsSerializer
-from users.models import User
-from users.serializers import PlayerListSerializer
 from .models import Game, Location, RsvpStatus
 from .serializers import (
     GameCreateSerializer,
@@ -29,9 +13,6 @@ from .serializers import (
     RsvpCreateSerializer,
     RsvpSerializer,
 )
-
-
-logger = logging.getLogger('app.games.views')
 
 
 class GameViewSet(AppViewSet):
