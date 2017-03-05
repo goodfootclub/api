@@ -12,87 +12,44 @@ from main.viewsets import AppViewSet
 from .models import Team, Role
 from .serializers import (
     RoleSerializer,
+    TeamCreateSerializer,
     TeamDetailsSerializer,
     TeamListSerializer,
-    TeamSerializer,
 )
 # from games.views import GamesList
 
 
-class TeamsViewSet(AppViewSet):
+class TeamViewSet(AppViewSet):
     """
-    # Teams api
-
-    # Players
-    You can update players in this method or manage them separatly on
-    the [teams/{id}/players/](./players) view
-
-
-    TODO
+    Root viewset for teams api
     """
     queryset = Team.objects.all()
     # serializer_class = TeamDetailsSerializer
     serializer_class = TeamDetailsSerializer
     serializer_classes = {
         'list': TeamListSerializer,
-        'create': TeamSerializer,
+        'create': TeamCreateSerializer,
+        'retrieve': TeamDetailsSerializer,
     }
 
+    def list(self, *args, **kwargs):
+        """Get a list of existing teams or make a new one"""
+        return super().list(*args, **kwargs)
 
-class RolesViewSet(AppViewSet):
+    def retrieve(self, *args, **kwargs):
+        """
+        Check details of a team, change the info or delete it
+
+        # Players
+        Team players can be managed throught a separate method at
+        the [teams/{id}/players/](./players) view.
+        """
+        return super().retrieve(*args, **kwargs)
+
+
+class RoleViewSet(AppViewSet):
     """ Testing VeiwSets """
-    queryset = Role.objects.all()
-    # serializer_class = TeamDetailsSerializer
     serializer_class = RoleSerializer
-    serializer_classes = {
-    }
 
     def get_queryset(self):
         return Role.objects.filter(team_id=self.kwargs['team_pk'])
-
-
-class TeamsList(ListCreateAPIView):
-    """Get a list of existing teams or make a new one"""
-    serializer_class = TeamListSerializer
-
-    def get_queryset(self):
-        """Apply a simple text search to the Player query
-        """
-        queryset = Team.objects.all()
-        search = self.request.query_params.get('search', None)
-        if search:
-            queryset = queryset.annotate(
-                search=SearchVector('name', 'info'),
-            ).filter(search=search)
-        return queryset
-
-
-class TeamDetails(RetrieveUpdateDestroyAPIView):
-    """Check details of a team, change the info or delete it
-
-    # Detailed view
-    To get related models in a serialized form instad of ids
-    [detailed view](?details) is available
-
-    # Players
-    You can update players in this method or manage them separatly on
-    the [teams/{id}/players/](./players) view
-    """
-    queryset = Team.objects.all()
-    lookup_url_kwarg = 'team_id'
-
-    def get_serializer_class(self):
-        if {'d', 'details'} & self.request.query_params.keys():
-            return TeamDetailsSerializer
-        return TeamSerializer
-
-
-class RolesList(ListCreateAPIView):
-    """List of players on the team
-
-    Add a player by POSTing to this endpoint
-    """
-    serializer_class = RoleSerializer
-
-    def get_queryset(self):
-        return Role.objects.filter(team_id=self.kwargs['team_id'])

@@ -14,53 +14,10 @@ from ..models import Team
 
 
 __all__ = [
+    'TeamCreateSerializer',
     'TeamDetailsSerializer',
     'TeamListSerializer',
-    'TeamSerializer',
 ]
-
-
-class TeamSerializer(ModelSerializer):
-
-    players = RoleSerializer(source='role_set', many=True)
-
-    class Meta:
-        model = Team
-
-    def to_internal_value(self, data):
-        if 'players' not in data:
-            return data
-
-        roles_query = Role.objects.filter(team_id=data['id'])
-        roles_by_id = {
-            role.id: role
-            for role in roles_query
-        }
-        roles = []
-        for record in data['players']:
-            if isinstance(record, int):
-                record = roles_by_id.get(record, {'id': record})
-            r, created = roles_query.get_or_create(
-                player_id=record['id'], team_id=data['id']
-            )
-            if not created:
-                roles_by_id.pop(r.id, None)
-            r.role = record.get('role', r.role)
-            roles.append(r)
-        data['players'] = roles
-        data['players_to_remove'] = roles_by_id.values()
-
-        return data
-
-    @atomic
-    def update(self, instance, validated_data):
-        for role in validated_data.pop('players', []):
-            role.save()
-
-        for role in validated_data.pop('players_to_remove', []):
-            role.delete()
-
-        return super().update(instance, validated_data)
 
 
 class TeamListSerializer(ModelSerializer):
@@ -78,6 +35,9 @@ class TeamListSerializer(ModelSerializer):
                                   request=request)
         return data
 
+
+class TeamCreateSerializer(TeamListSerializer):
+
     def create(self, *args, **kwargs):
         team = super().create(*args, **kwargs)
         request = self.context.get('request', None)
@@ -86,23 +46,12 @@ class TeamListSerializer(ModelSerializer):
         return team
 
 
-class TeamDetailsSerializer(TeamSerializer):
-    players = RoleSerializer(source='role_set', many=True)
-    managers = PlayerListSerializer(many=True)
+class TeamDetailsSerializer(ModelSerializer):
 
-    def to_internal_value(self, data):
+    players = RoleSerializer(source='role_set', many=True, read_only=True)
+    managers = PlayerListSerializer(many=True, read_only=True)
+    name = ReadOnlyField()
 
-        data = super().to_internal_value(data)
-
-        data['managers'] = [
-            user if isinstance(user, int) else user['id']
-            for user in data.get('managers', [])
-        ]
-
-        return data
-
-    def update(self, instance, validated_data):
-
-        instance.managers = validated_data.pop('managers', [])
-
-        return super().update(instance, validated_data)
+    class Meta:
+        model = Team
+        fields = 'id', 'name', 'info', 'type', 'players', 'managers'

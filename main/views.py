@@ -17,7 +17,7 @@ API_METHODS = [
     'games-list',
     'locations-list',
     'player-list',
-    'teams-list',
+    'team-list',
     'api-error',
 ]
 
