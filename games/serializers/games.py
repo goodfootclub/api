@@ -41,9 +41,19 @@ class GameCreateSerializer(ModelSerializer):
         model = Game
         fields = 'id', 'teams', 'datetime', 'datetimes', 'location'
 
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+
+        request = self.context.get('request', None)
+        if request and request.accepted_renderer.format == 'api':
+            data['url'] = reverse('game-detail', (obj.id, ),
+                                  request=request)
+        return data
+
     @atomic
     def create(self, validated_data):
         location_data = validated_data['location']
+        teams = validated_data['teams']
         request = self.context.get('request', None)
         datetimes = []
 
@@ -51,12 +61,15 @@ class GameCreateSerializer(ModelSerializer):
             datetimes.append(validated_data['datetime'])
         if 'datetimes' in validated_data:
             datetimes += validated_data['datetimes']
+
+        # FIXME: move validation logic to .is_valid()
         if not datetimes:
-            # FIXME: move logic to .is_valid()
             raise ValidationError(
                 'Must include at least one of the following fields: '
                 'datetime, datetimes'
             )
+        if len(teams) > 2:
+            raise ValidationError('Please pick up to 2 teams')
 
         try:
             location_obj = Location.objects.get(
@@ -77,13 +90,27 @@ class GameCreateSerializer(ModelSerializer):
                 location=location_obj,
                 organizer=request.user,
             )
-            game.teams.add(*validated_data['teams'])
+            game.teams.add(*teams)
 
-            RsvpStatus.objects.create(
-                game=game,
-                player=request.user,
-                status=RsvpStatus.GOING,
-            )
+            for i, team in enumerate(teams):
+                for player in team.players.filter(role__gt=0):
+                    rsvp, _ = RsvpStatus.objects.get_or_create(
+                        game=game,
+                        player=player,
+                    )
+                    rsvp.team = i
+                    if player.id == request.user.id:
+                        rsvp.status = RsvpStatus.GOING
+                    else:
+                        rsvp.status = RsvpStatus.INVITED
+                    rsvp.save()
+
+            if not teams:
+                RsvpStatus.objects.create(
+                    game=game,
+                    player=request.user,
+                    status=RsvpStatus.GOING,
+                )
             games.append(game)
 
         return games[0]
