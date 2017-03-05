@@ -19,10 +19,13 @@ __all__ = [
 class RsvpSerializer(ModelSerializer):
     rsvp = ChoiceField(RsvpStatus.RSVP_CHOICES, source='status')
     rsvp_id = ReadOnlyField(source='id')
+    first_name = ReadOnlyField(source='player.first_name')
+    last_name = ReadOnlyField(source='player.last_name')
+    img = ImageField(source='player.img', read_only=True)
 
     class Meta:
         model = RsvpStatus
-        fields = 'rsvp_id', 'rsvp',
+        fields = 'rsvp_id', 'rsvp', 'first_name', 'last_name', 'img'
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -36,8 +39,7 @@ class RsvpSerializer(ModelSerializer):
         return data
 
     def create(self, validated_data):
-        if 'game_id' not in validated_data:
-            validated_data.update(self.context['view'].kwargs)
+        validated_data['game_id'] = self.context['view'].kwargs['game_pk']
         try:
             return super().create(validated_data)
         except IntegrityError as e:

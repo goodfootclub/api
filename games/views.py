@@ -23,6 +23,7 @@ from .models import Game, Location, RsvpStatus
 from .serializers import (
     GameDetailsSerializer,
     GameListCreateSerializer,
+    GameCreateSerializer,
     GameSerializer,
     LocationSerializer,
     RsvpDetailsSerializer,
@@ -37,7 +38,11 @@ class GameViewSet(AppViewSet):
     """
     Root viewset for games api, also included in teams/{id}/games api
     """
+    queryset = Game.objects.all()
     serializer_class = GameListCreateSerializer
+    serializer_classes = {
+        'create': GameCreateSerializer,
+    }
     ordering_fields = ('datetime', )
     search_fields = ('datetime', 'location__name', 'location__address')
 
@@ -45,9 +50,10 @@ class GameViewSet(AppViewSet):
         """
         Only retrun games in the future for now
         """
+        queryset = super().get_queryset()
         if 'all' in self.request.query_params:
-            return Game.objects.all()
-        return Game.objects.filter(datetime__gt=datetime.utcnow())
+            return queryset
+        return queryset.filter(datetime__gt=datetime.utcnow())
 
 
 class GamesList(ListCreateAPIView):
@@ -202,6 +208,7 @@ class RsvpDetails(RetrieveUpdateDestroyAPIView):
         return RsvpStatus.objects.filter(game_id=self.kwargs['game_id'])
 
 
-class LocationsList(ListCreateAPIView):
+class LocationViewSet(AppViewSet):
     serializer_class = LocationSerializer
     queryset = Location.objects.all()
+    search_fields = ('address', 'name')

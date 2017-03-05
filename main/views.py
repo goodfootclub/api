@@ -14,8 +14,8 @@ from rest_framework.exceptions import APIException
 API_METHODS = [
     'api-root',
     'current-user',
-    'games-list',
-    'locations-list',
+    'game-list',
+    'location-list',
     'player-list',
     'team-list',
     'api-error',

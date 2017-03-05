@@ -10,5 +10,5 @@ urlpatterns = [
 
     url(r'^users/', include('users.urls')),
     url(r'^', include('teams.urls')),
-    url(r'^games/', include('games.urls')),
+    url(r'^', include('games.urls')),
 ]

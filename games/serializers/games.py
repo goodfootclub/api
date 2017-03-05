@@ -1,11 +1,19 @@
+
+from django.db.transaction import atomic
+from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import (
+    ModelSerializer,
+    IntegerField,
+    ListField,
+    DateTimeField,
+)
 
 from teams.views import TeamListSerializer, TeamDetailsSerializer
 from users.serializers.players import PlayerListSerializer
 from .locations import LocationSerializer
 from .rsvps import *
-from ..models import Game, Location
+from ..models import Game, Location, RsvpStatus
 
 
 __all__ = [
@@ -16,6 +24,69 @@ __all__ = [
     'GameSerializer',
     'GameSerializer_',
 ]
+
+
+class GameCreateSerializer(ModelSerializer):
+    location = LocationSerializer(validators=[])
+    datetime = DateTimeField(required=False)
+    datetimes = ListField(
+        child=DateTimeField(),
+        help_text='(optional) extra datetimes, will automatically create '
+                  'more games',
+        required=False,
+        write_only=True,
+    )
+
+    class Meta:
+        model = Game
+        fields = 'id', 'teams', 'datetime', 'datetimes', 'location'
+
+    @atomic
+    def create(self, validated_data):
+        location_data = validated_data['location']
+        request = self.context.get('request', None)
+        datetimes = []
+
+        if 'datetime' in validated_data:
+            datetimes.append(validated_data['datetime'])
+        if 'datetimes' in validated_data:
+            datetimes += validated_data['datetimes']
+        if not datetimes:
+            # FIXME: move logic to .is_valid()
+            raise ValidationError(
+                'Must include at least one of the following fields: '
+                'datetime, datetimes'
+            )
+
+        try:
+            location_obj = Location.objects.get(
+                name=location_data['name'],
+                address=location_data['address'],
+            )
+        except Location.DoesNotExist:
+            location_obj = Location.objects.create(
+                name=location_data['name'],
+                address=location_data['address'],
+            )
+
+        # FIXME: do bulk creates yo!
+        games = []
+        for dt in datetimes:
+            game = Game.objects.create(
+                datetime=dt,
+                location=location_obj,
+                organizer=request.user,
+            )
+            game.teams.add(*validated_data['teams'])
+
+            RsvpStatus.objects.create(
+                game=game,
+                player=request.user,
+                status=RsvpStatus.GOING,
+            )
+            games.append(game)
+
+        return games[0]
 
 
 class GameSerializer_(ModelSerializer):
@@ -77,45 +148,6 @@ class GameSerializer_(ModelSerializer):
         })
 
         game = Game.objects.create(**validated_data)
-
-        RsvpStatus.objects.create(
-            game=game,
-            status=RsvpStatus.GOING,
-            player=request.user,
-        )
-
-        return game
-
-
-# --- old
-
-
-class GameCreateSerializer(ModelSerializer):
-    class Meta:
-        model = Game
-        fields = 'teams', 'datetime', 'location'
-
-    def create(self, validated_data):
-        location_data = validated_data['location']
-
-        try:
-            location_obj = Location.objects.get(
-                name=location_data['name'],
-                address=location_data['address'],
-            )
-        except Location.DoesNotExist:
-            location_obj = Location.objects.create(
-                name=location_data['name'],
-                address=location_data['address'],
-            )
-
-        request = self.context.get('request', None)
-
-        game = Game.objects.create(
-            location=location_obj,
-            datetime=validated_data['datetime'],
-            organizer=request.user,
-        )
 
         RsvpStatus.objects.create(
             game=game,
