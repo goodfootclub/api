@@ -5,6 +5,7 @@ from main.viewsets import AppViewSet
 from .models import Team, Role
 from .serializers import (
     RoleSerializer,
+    RoleCreateSerializer,
     TeamCreateSerializer,
     TeamDetailsSerializer,
     TeamListSerializer,
@@ -41,8 +42,13 @@ class TeamViewSet(AppViewSet):
 
 
 class RoleViewSet(AppViewSet):
-    """ Testing VeiwSets """
+    """
+    Manage player "roles" using this api
+    """
     serializer_class = RoleSerializer
+    serializer_classes = {
+        'create': RoleCreateSerializer,
+    }
 
     def get_queryset(self):
         return Role.objects.filter(team_id=self.kwargs['team_pk'])

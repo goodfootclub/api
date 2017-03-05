@@ -12,13 +12,13 @@ from main.exceptions import RelationAlreadyExist
 from ..models import Role
 
 
-__all__ = ['RoleSerializer']
+__all__ = ['RoleSerializer', 'RoleCreateSerializer']
 
 
-class RoleSerializer(ModelSerializer):
+class RoleCreateSerializer(ModelSerializer):
 
     role_id = ReadOnlyField(source='id')
-    id = ReadOnlyField(source='player_id')
+    id = IntegerField(source='player_id')
     first_name = ReadOnlyField(source='player.first_name')
     last_name = ReadOnlyField(source='player.last_name')
     img = ImageField(source='player.img', read_only=True)
@@ -32,22 +32,23 @@ class RoleSerializer(ModelSerializer):
         request = self.context.get('request', None)
 
         if request and request.accepted_renderer.format == 'api':
-            try:
-                data['url'] = reverse(
-                    'team-role-detail',
-                    (obj.team_id, obj.id),
-                    request=request
-                )
-            except KeyError:
-                pass
+            data['url'] = reverse(
+                'team-role-detail',
+                (obj.team_id, obj.id),
+                request=request
+            )
         return data
 
     def create(self, validated_data):
-        if 'team_id' not in validated_data:
-            validated_data.update(self.context['view'].kwargs)
+        validated_data['team_id'] = self.context['view'].kwargs['team_pk']
         try:
             return super().create(validated_data)
         except IntegrityError as e:
             raise RelationAlreadyExist(
                 detail=e.args[0].split('DETAIL:  ')[1]
             )
+
+
+class RoleSerializer(RoleCreateSerializer):
+
+    id = ReadOnlyField(source='player_id')
