@@ -9,7 +9,7 @@ from rest_framework.serializers import (
     DateTimeField,
 )
 
-from teams.views import TeamListSerializer, TeamDetailsSerializer
+from teams.views import TeamListSerializer
 from users.serializers.players import PlayerListSerializer
 from .locations import LocationSerializer
 from .rsvps import *
@@ -19,11 +19,28 @@ from ..models import Game, Location, RsvpStatus
 __all__ = [
     'GameCreateSerializer',
     'GameDetailsSerializer',
-    'GameListCreateSerializer',
     'GameListSerializer',
     'GameSerializer',
     'GameSerializer_',
 ]
+
+
+class GameListSerializer(ModelSerializer):
+    teams = TeamListSerializer(many=True)
+    location = LocationSerializer()
+
+    class Meta:
+        model = Game
+        fields = 'id', 'teams', 'datetime', 'location'
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+
+        request = self.context.get('request', None)
+        if request and request.accepted_renderer.format == 'api':
+            data['url'] = reverse('game-detail', (obj.id, ),
+                                  request=request)
+        return data
 
 
 class GameCreateSerializer(ModelSerializer):
@@ -185,48 +202,9 @@ class GameSerializer_(ModelSerializer):
         return game
 
 
-class GameListSerializer(ModelSerializer):
-    class Meta:
-        model = Game
-        fields = 'id', 'teams', 'datetime', 'location'
-
-
-class GameListCreateSerializer(ModelSerializer):
-    teams = TeamListSerializer(many=True)
-    location = LocationSerializer()
-
-    class Meta:
-        model = Game
-        fields = 'id', 'teams', 'datetime', 'location'
-
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
-
-        request = self.context.get('request', None)
-        if request and request.accepted_renderer.format == 'api':
-            data['url'] = reverse('game-detail', (obj.id, ),
-                                  request=request)
-        return data
-
-    # def to_internal_value(self, data):
-
-    #     teams = data.pop('teams', [])
-    #     value = super().to_internal_value(data)
-
-    #     value['teams'] = []
-    #     for team in teams:
-    #         if team is None:
-    #             continue
-    #         if not isinstance(team, int):
-    #             raise ValidationError
-    #         team_obj = Team.objects.get(team)
-
-    #     return value
-
-
 class GameSerializer(ModelSerializer):
 
-    players = RsvpListCreateSerializer(source='rsvps', many=True)
+    players = RsvpSerializer(source='rsvps', many=True)
 
     class Meta:
         model = Game
@@ -239,7 +217,7 @@ class GameSerializer(ModelSerializer):
 
 class GameDetailsSerializer(GameSerializer):
 
-    players = RsvpDetailsSerializer(source='rsvps', many=True)
+    players = RsvpSerializer(source='rsvps', many=True)
     organizer = PlayerListSerializer()
-    teams = TeamDetailsSerializer(many=True)
+    teams = TeamListSerializer(many=True)
     location = LocationSerializer()

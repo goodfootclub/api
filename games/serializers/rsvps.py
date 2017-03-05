@@ -10,13 +10,13 @@ from ..models import RsvpStatus
 
 
 __all__ = [
-    'RsvpDetailsSerializer',
-    'RsvpListCreateSerializer',
+    'RsvpCreateSerializer',
     'RsvpSerializer',
 ]
 
 
 class RsvpSerializer(ModelSerializer):
+    id = ReadOnlyField(source='player_id')
     rsvp = ChoiceField(RsvpStatus.RSVP_CHOICES, source='status')
     rsvp_id = ReadOnlyField(source='id')
     first_name = ReadOnlyField(source='player.first_name')
@@ -25,18 +25,25 @@ class RsvpSerializer(ModelSerializer):
 
     class Meta:
         model = RsvpStatus
-        fields = 'rsvp_id', 'rsvp', 'first_name', 'last_name', 'img'
+        fields = 'id', 'rsvp_id', 'rsvp', 'first_name', 'last_name', 'img'
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
         request = self.context.get('request', None)
         if request and request.accepted_renderer.format == 'api':
             data['url'] = reverse(
-                'game-rsvp',
-                (self.context['view'].kwargs['game_id'], obj.id),
+                'rsvp-detail',
+                (obj.game_id, obj.id),
                 request=request
             )
         return data
+
+
+class RsvpCreateSerializer(RsvpSerializer):
+    id = IntegerField(source='player_id')
+
+    class Meta(RsvpSerializer.Meta):
+        fields = 'id', 'rsvp_id', 'rsvp', 'team'
 
     def create(self, validated_data):
         validated_data['game_id'] = self.context['view'].kwargs['game_pk']
@@ -46,22 +53,3 @@ class RsvpSerializer(ModelSerializer):
             raise RelationAlreadyExist(
                 detail=e.args[0].split('DETAIL:  ')[1]
             )
-
-
-class RsvpListCreateSerializer(RsvpSerializer):
-    id = IntegerField(source='player_id')
-
-    class Meta(RsvpSerializer.Meta):
-        fields = 'id', 'rsvp_id', 'rsvp', 'team'
-
-
-class RsvpDetailsSerializer(RsvpListCreateSerializer):
-
-    first_name = ReadOnlyField(source='player.first_name')
-    last_name = ReadOnlyField(source='player.last_name')
-    img = ImageField(source='player.img', read_only=True)
-
-    class Meta(RsvpListCreateSerializer.Meta):
-        fields = RsvpListCreateSerializer.Meta.fields + (
-            'first_name', 'last_name', 'img'
-        )

@@ -21,12 +21,12 @@ from users.models import User
 from users.serializers import PlayerListSerializer
 from .models import Game, Location, RsvpStatus
 from .serializers import (
-    GameDetailsSerializer,
-    GameListCreateSerializer,
     GameCreateSerializer,
+    GameDetailsSerializer,
+    GameListSerializer,
     GameSerializer,
     LocationSerializer,
-    RsvpDetailsSerializer,
+    RsvpCreateSerializer,
     RsvpSerializer,
 )
 
@@ -39,8 +39,9 @@ class GameViewSet(AppViewSet):
     Root viewset for games api, also included in teams/{id}/games api
     """
     queryset = Game.objects.all()
-    serializer_class = GameListCreateSerializer
+    serializer_class = GameDetailsSerializer
     serializer_classes = {
+        'list': GameListSerializer,
         'create': GameCreateSerializer,
     }
     ordering_fields = ('datetime', )
@@ -56,47 +57,15 @@ class GameViewSet(AppViewSet):
         return queryset.filter(datetime__gt=datetime.utcnow())
 
 
-class GamesList(ListCreateAPIView):
-    """
-    Get a list of existing game events or make a new one
-
-    By defaul retuns games that are in the future, use
-    [all](?all) parameter to get all games
-    """
-    serializer_class = GameListCreateSerializer
-    ordering_fields = ('datetime', )
-    search_fields = ('datetime', 'location__name', 'location__address')
-
-    def get_queryset(self):
-        """Only retrun games in the future for now
-        """
-        if 'all' in self.request.query_params:
-            return Game.objects.all()
-        return Game.objects.filter(datetime__gt=datetime.utcnow())
-
-
-class GameDetails(RetrieveUpdateDestroyAPIView):
-    """Check game details, change the info or delete it
-
-    # Detailed view
-    To get related models in a serialized form instead of ids
-    [detailed view](?details) is available
-
-    # Players
-    Manage players rsvps with [/players](./players) method
-    """
-    queryset = Game.objects.all()
-    lookup_url_kwarg = 'game_id'
-
-    def get_serializer_class(self):
-        if {'d', 'details'} & self.request.query_params.keys():
-            return GameDetailsSerializer
-        return GameSerializer
+class LocationViewSet(AppViewSet):
+    serializer_class = LocationSerializer
+    queryset = Location.objects.all()
+    search_fields = ('address', 'name')
 
 
 # TODO: move to a separate permissions module
 class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
-    """Ensure that the change is withing following options:
+    """Ensure that the change is withing the following options:
         - User joins pickup games and asks to join league games
         - Player changes status or leaves
         - Game organizer removes player from open games
@@ -160,8 +129,14 @@ class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
         is_team_game = not is_pickup_game
 
         user = request.user
+
         user_is_organizer = user == game.organizer
-        user_is_team_manager = False  # TODO:
+        user_is_team_manager = False
+        try:
+            team = game.teams.all()[obj.team]
+            user_is_team_manager = user in team.managers.all()
+        except IndexError:
+            team = None
         user_is_player = user == obj.player
 
         if request.method == 'DELETE':
@@ -176,7 +151,7 @@ class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
         if not data:
             return True
 
-        new_status = data.get('rsvp', None)
+        new_status = int(data.get('rsvp', None))
         old_status = obj.status
         is_rsvp = new_status is not None and new_status >= 0
 
@@ -190,25 +165,13 @@ class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
         return (user_is_player and is_rsvp) or is_request_accept
 
 
-class RsvpsList(ListCreateAPIView):
-    """List players RSVPs for a specific game"""
-    serializer_class = RsvpDetailsSerializer
-    permission_classes = RsvpCreateUpdateDestroyPermission,
-
-    def get_queryset(self):
-        return RsvpStatus.objects.filter(game_id=self.kwargs['game_id'])
-
-
-class RsvpDetails(RetrieveUpdateDestroyAPIView):
-    """Get or update player RSVP status"""
+class RsvpViewSet(AppViewSet):
     serializer_class = RsvpSerializer
+    serializer_classes = {
+        'create': RsvpCreateSerializer,
+    }
+    queryset = RsvpStatus.objects.all()
     permission_classes = RsvpCreateUpdateDestroyPermission,
 
     def get_queryset(self):
-        return RsvpStatus.objects.filter(game_id=self.kwargs['game_id'])
-
-
-class LocationViewSet(AppViewSet):
-    serializer_class = LocationSerializer
-    queryset = Location.objects.all()
-    search_fields = ('address', 'name')
+        return super().get_queryset().filter(game_id=self.kwargs['game_pk'])
