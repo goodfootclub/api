@@ -1,10 +1,5 @@
 from django.contrib.postgres.search import SearchVector
 
-from rest_framework.decorators import detail_route, list_route
-from rest_framework.generics import (
-    ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView,
-)
 from rest_framework.response import Response
 
 from main.viewsets import AppViewSet
@@ -24,13 +19,22 @@ class TeamViewSet(AppViewSet):
     Root viewset for teams api
     """
     queryset = Team.objects.all()
-    # serializer_class = TeamDetailsSerializer
     serializer_class = TeamDetailsSerializer
     serializer_classes = {
         'list': TeamListSerializer,
         'create': TeamCreateSerializer,
         'retrieve': TeamDetailsSerializer,
     }
+
+    def get_queryset(self):
+        """Apply a simple text search to the Player query"""
+        queryset = super().get_queryset()
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.annotate(
+                search=SearchVector('name', 'info'),
+            ).filter(search=search)
+        return queryset
 
     def list(self, *args, **kwargs):
         """Get a list of existing teams or make a new one"""
