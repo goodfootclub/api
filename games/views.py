@@ -49,9 +49,14 @@ class GameViewSet(AppViewSet):
 
     def get_queryset(self):
         """
-        Only retrun games in the future for now
+        Only return games in the future unless 'all' param is specified,
+        filter by team if required.
         """
         queryset = super().get_queryset()
+
+        if 'team_pk' in self.kwargs:
+            queryset = queryset.filter(teams__in=self.kwargs['team_pk'])
+
         if 'all' in self.request.query_params:
             return queryset
         return queryset.filter(datetime__gt=datetime.utcnow())
