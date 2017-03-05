@@ -1,6 +1,4 @@
-from django.contrib.postgres.search import SearchVector
-
-from rest_framework.response import Response
+import django_filters.rest_framework
 
 from main.viewsets import AppViewSet
 
@@ -25,19 +23,10 @@ class TeamViewSet(AppViewSet):
         'create': TeamCreateSerializer,
         'retrieve': TeamDetailsSerializer,
     }
-
-    def get_queryset(self):
-        """Apply a simple text search to the Player query"""
-        queryset = super().get_queryset()
-        search = self.request.query_params.get('search', None)
-        if search:
-            queryset = queryset.annotate(
-                search=SearchVector('name', 'info'),
-            ).filter(search=search)
-        return queryset
+    search_fields = ('info', 'name')
 
     def list(self, *args, **kwargs):
-        """Get a list of existing teams or make a new one"""
+        """Get a list of existing teams or create a new one"""
         return super().list(*args, **kwargs)
 
     def retrieve(self, *args, **kwargs):

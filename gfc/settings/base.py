@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # 3rd party
+    'crispy_forms',
     'rest_framework',
     'social.apps.django_app.default',
     'timezone_field',
@@ -199,6 +200,9 @@ EMAIL_SUBJECT_PREFIX = '[Good Foot Club (DEVELOPMENT)] '
 # ReST framework
 
 REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.SearchFilter',
+    ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
