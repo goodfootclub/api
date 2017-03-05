@@ -2,10 +2,6 @@
 
 CurrentUser (api/users/current) - shows info about logged in user or 401s.
 """
-from django.contrib.postgres.search import SearchVector
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.generics import (
     RetrieveUpdateAPIView,
     ListAPIView,
@@ -31,17 +27,8 @@ class CurrentUser(RetrieveUpdateAPIView):
 
 class PlayerList(ListAPIView):
     serializer_class = PlayerListSerializer
-
-    def get_queryset(self):
-        """Apply a simple text search to the Player query
-        """
-        queryset = User.objects.all()
-        search = self.request.query_params.get('search', None)
-        if search:
-            queryset = queryset.annotate(
-                search=SearchVector('first_name', 'last_name', 'bio'),
-            ).filter(search=search)
-        return queryset
+    queryset = User.objects.all()
+    search_fields = ('first_name', 'last_name', 'bio')
 
 
 class PlayerDetails(RetrieveAPIView):
