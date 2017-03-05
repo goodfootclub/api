@@ -38,7 +38,7 @@ class GameViewSet(AppViewSet):
         if 'team_pk' in self.kwargs:
             queryset = queryset.filter(teams__in=self.kwargs['team_pk'])
 
-        if 'all' in self.request.query_params:
+        if self.action != 'list' or 'all' in self.request.query_params:
             return queryset
         return queryset.filter(datetime__gt=datetime.utcnow())
 
