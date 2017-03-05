@@ -5,7 +5,7 @@ from teams.views import TeamListSerializer, TeamDetailsSerializer
 from users.serializers.players import PlayerListSerializer
 from .locations import LocationSerializer
 from .rsvps import *
-from ..models import Game
+from ..models import Game, Location
 
 
 __all__ = [
@@ -14,7 +14,80 @@ __all__ = [
     'GameListCreateSerializer',
     'GameListSerializer',
     'GameSerializer',
+    'GameSerializer_',
 ]
+
+
+class GameSerializer_(ModelSerializer):
+    """Simple Game representation for polling and subsequent requests
+
+    Fields:
+
+     * id (Int) - read only, game id
+     * datetime (ISO Datetime String) - date & time of a game (in UTC)
+     * description (String) - any notes
+     * duration (Int) - game duration in minutes
+     * location (Int|Object) - id of Location or an object with name
+        and address
+     * organizer (Int) - read only, user id of the creator of the game
+     * teams (Int[]) - team ids
+
+    ## Example:
+
+        {
+            "id": 101,
+            "datetime": "2017-01-20T02:52:00Z",
+            "description": null,
+            "duration": null,
+            "location": 8,
+            "organizer": 101,
+            "teams": []
+        }
+    """
+    class Meta:
+        model = Game
+        fields = (
+            'id',
+            'datetime',
+            'description',
+            'duration',
+            'location',
+            'organizer',
+            'teams'
+        )
+        read_only_fields = 'organizer',
+
+    def create(self, validated_data):
+        location_data = validated_data['location']
+
+        # TODO: test/improve Exception handling
+        if isinstance(location_data, int):
+            location_obj = super().create(validated_data)
+        else:
+            location_obj = Location.objects.get_or_create(
+                name=location_data['name'],
+                address=location_data['address'],
+            )
+
+        request = self.context.get('request', None)
+
+        validated_data.update({
+            'location': location_obj,
+            'organizer': request.user,
+        })
+
+        game = Game.objects.create(**validated_data)
+
+        RsvpStatus.objects.create(
+            game=game,
+            status=RsvpStatus.GOING,
+            player=request.user,
+        )
+
+        return game
+
+
+# --- old
 
 
 class GameCreateSerializer(ModelSerializer):

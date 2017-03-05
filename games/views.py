@@ -2,6 +2,7 @@ import logging
 import pprint
 from datetime import datetime
 
+import django_filters
 from django.db import IntegrityError
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
@@ -13,6 +14,7 @@ from rest_framework.generics import (
 from rest_framework import permissions
 from rest_framework.reverse import reverse
 
+from main.viewsets import AppViewSet
 from main.exceptions import RelationAlreadyExist
 from teams.views import TeamListSerializer, TeamDetailsSerializer
 from users.models import User
@@ -31,13 +33,39 @@ from .serializers import (
 logger = logging.getLogger('app.games.views')
 
 
-class GamesList(ListCreateAPIView):
-    """Get a list of existing game events or make a new one"""
+class GameViewSet(AppViewSet):
+    """
+    Root viewset for games api, also included in teams/{id}/games api
+    """
     serializer_class = GameListCreateSerializer
+    ordering_fields = ('datetime', )
+    search_fields = ('datetime', 'location__name', 'location__address')
+
+    def get_queryset(self):
+        """
+        Only retrun games in the future for now
+        """
+        if 'all' in self.request.query_params:
+            return Game.objects.all()
+        return Game.objects.filter(datetime__gt=datetime.utcnow())
+
+
+class GamesList(ListCreateAPIView):
+    """
+    Get a list of existing game events or make a new one
+
+    By defaul retuns games that are in the future, use
+    [all](?all) parameter to get all games
+    """
+    serializer_class = GameListCreateSerializer
+    ordering_fields = ('datetime', )
+    search_fields = ('datetime', 'location__name', 'location__address')
 
     def get_queryset(self):
         """Only retrun games in the future for now
         """
+        if 'all' in self.request.query_params:
+            return Game.objects.all()
         return Game.objects.filter(datetime__gt=datetime.utcnow())
 
 
