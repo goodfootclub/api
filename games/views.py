@@ -36,7 +36,7 @@ class GameViewSet(AppViewSet):
         queryset = super().get_queryset()
 
         if 'team_pk' in self.kwargs:
-            queryset = queryset.filter(teams__in=self.kwargs['team_pk'])
+            queryset = queryset.filter(teams__in=[self.kwargs['team_pk']])
 
         if self.action != 'list' or 'all' in self.request.query_params:
             return queryset
