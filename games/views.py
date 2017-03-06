@@ -85,7 +85,7 @@ class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
             is_request = new_status == RsvpStatus.REQUESTED_TO_JOIN
             is_rsvp = new_status is not None and new_status >= 0
 
-            game = Game.objects.get(id=view.kwargs['game_id'])
+            game = Game.objects.get(id=view.kwargs['game_pk'])
             is_pickup_game = game.teams.count() == 0
             is_team_game = not is_pickup_game
             user = request.user

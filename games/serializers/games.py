@@ -26,7 +26,7 @@ __all__ = [
 
 
 class GameListSerializer(ModelSerializer):
-    teams = TeamListSerializer(many=True)
+    teams = TeamListSerializer(many=True, required=False)
     location = LocationSerializer()
 
     class Meta:
