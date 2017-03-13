@@ -35,7 +35,7 @@ class GameViewSet(AppViewSet):
         filter by team if required or list games for logged in user.
         """
         if self.action == 'my':
-            queryset = self.request.user.games
+            queryset = self.request.user.games.all()
         else:
             queryset = super().get_queryset()
 
