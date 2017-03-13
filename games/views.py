@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from rest_framework import permissions
+from rest_framework.decorators import list_route
 
 from main.viewsets import AppViewSet
 from .models import Game, Location, RsvpStatus
@@ -31,16 +32,24 @@ class GameViewSet(AppViewSet):
     def get_queryset(self):
         """
         Only return games in the future unless 'all' param is specified,
-        filter by team if required.
+        filter by team if required or list games for logged in user.
         """
-        queryset = super().get_queryset()
+        if self.action == 'my':
+            queryset = self.request.user.games
+        else:
+            queryset = super().get_queryset()
 
         if 'team_pk' in self.kwargs:
             queryset = queryset.filter(teams__in=[self.kwargs['team_pk']])
 
-        if self.action != 'list' or 'all' in self.request.query_params:
+        if 'all' in self.request.query_params:
             return queryset
         return queryset.filter(datetime__gt=datetime.utcnow())
+
+    @list_route(methods=['get'])
+    def my(self, request):
+        """Games for the logged in user"""
+        return super().list(request)
 
 
 class LocationViewSet(AppViewSet):
@@ -51,7 +60,8 @@ class LocationViewSet(AppViewSet):
 
 # TODO: move to a separate permissions module
 class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
-    """Ensure that the change is withing the following options:
+    """
+    Ensure that the change is withing the following options:
         - User joins pickup games and asks to join league games
         - Player changes status or leaves
         - Game organizer removes player from open games
