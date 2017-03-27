@@ -3,13 +3,14 @@ from django.db.transaction import atomic
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 from rest_framework.serializers import (
-    ModelSerializer,
+    DateTimeField,
     IntegerField,
     ListField,
-    DateTimeField,
+    PrimaryKeyRelatedField,
+    ModelSerializer,
 )
 
-from teams.views import TeamListSerializer
+from teams.views import TeamListSerializer, Team
 from users.serializers.players import PlayerListSerializer
 from .locations import LocationSerializer
 from .rsvps import *
@@ -44,6 +45,8 @@ class GameListSerializer(ModelSerializer):
 
 
 class GameCreateSerializer(ModelSerializer):
+    teams = PrimaryKeyRelatedField(many=True, required=False,
+                                   queryset=Team.objects.all())
     location = LocationSerializer(validators=[])
     datetime = DateTimeField(required=False)
     datetimes = ListField(
