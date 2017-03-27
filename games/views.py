@@ -34,16 +34,21 @@ class GameViewSet(AppViewSet):
         Only return games in the future unless 'all' param is specified,
         filter by team if required or list games for logged in user.
         """
-        if self.action == 'my':
-            queryset = self.request.user.games.all()
-        else:
-            queryset = super().get_queryset()
+        queryset = super().get_queryset()
 
         if 'team_pk' in self.kwargs:
             queryset = queryset.filter(teams__in=[self.kwargs['team_pk']])
 
+        if self.action == 'my':
+            queryset = queryset.filter(players__in=[self.request.user])
+
+        if 'team_pk' not in self.kwargs and self.action != 'my':
+            # show pickup games only
+            queryset = queryset.filter(teams=None)
+
         if 'all' in self.request.query_params:
             return queryset
+
         return queryset.filter(datetime__gt=datetime.utcnow())
 
     @list_route(methods=['get'])
