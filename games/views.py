@@ -42,11 +42,14 @@ class GameViewSet(AppViewSet):
         if self.action == 'my':
             queryset = queryset.filter(players__in=[self.request.user])
 
-        if 'team_pk' not in self.kwargs and self.action != 'my':
+        if 'team_pk' not in self.kwargs and self.action == 'list':
             # show pickup games only
             queryset = queryset.filter(teams=None)
 
-        if 'all' in self.request.query_params:
+        if (
+            self.action not in ('list', 'my') or
+            'all' in self.request.query_params
+        ):
             return queryset
 
         return queryset.filter(datetime__gt=datetime.utcnow())
