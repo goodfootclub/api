@@ -18,9 +18,8 @@ class UserSerializer(ModelSerializer):
 
 class CurrentUserSerializer(UserSerializer):
     managed_teams = TeamListSerializer(many=True, read_only=True)
-    games = GameListSerializer(many=True, read_only=True)
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + (
-            'phone', 'email', 'managed_teams', 'games'
+            'phone', 'email', 'managed_teams',
         )
