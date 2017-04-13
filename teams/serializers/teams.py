@@ -39,7 +39,7 @@ class TeamListSerializer(ModelSerializer):
 
 class MyTeamListSerializer(TeamListSerializer):
     """
-    This takes a *Role* objects, instead of a Team object, but only uses
+    This takes a *Role* object instead of a Team object, but only uses
     status from it, rest of the fields are for respective .team
     """
 

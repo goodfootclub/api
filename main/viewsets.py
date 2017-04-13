@@ -28,7 +28,7 @@ class ActionDocViewsetMeta(type):
 
             return _
 
-        for action in ['list', 'retrieve']:
+        for action in ['list', 'retrieve', 'my']:
             if action in namespace:
                 namespace[action] = wrap(namespace[action])
 

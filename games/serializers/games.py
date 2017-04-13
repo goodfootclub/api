@@ -1,10 +1,8 @@
-
 from django.db.transaction import atomic
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 from rest_framework.serializers import (
     DateTimeField,
-    IntegerField,
     ListField,
     PrimaryKeyRelatedField,
     ModelSerializer,
@@ -23,6 +21,7 @@ __all__ = [
     'GameListSerializer',
     'GameSerializer',
     'GameSerializer_',
+    'MyGameListSerializer',
 ]
 
 
@@ -34,13 +33,26 @@ class GameListSerializer(ModelSerializer):
         model = Game
         fields = 'id', 'teams', 'datetime', 'location'
 
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
+    def to_representation(self, game):
+        data = super().to_representation(game)
 
         request = self.context.get('request', None)
         if request and request.accepted_renderer.format == 'api':
-            data['url'] = reverse('game-detail', (obj.id, ),
+            data['url'] = reverse('game-detail', (game.id, ),
                                   request=request)
+        return data
+
+
+class MyGameListSerializer(GameListSerializer):
+    """
+    This takes an *RsvpStatus* object instead of a Game object, but only
+    uses status from it, rest of the fields are for respective .game
+    """
+
+    def to_representation(self, rsvp):
+        data = super().to_representation(rsvp.game)
+        data['rsvp'] = rsvp.status
+        data['team'] = rsvp.team
         return data
 
 
@@ -102,7 +114,7 @@ class GameCreateSerializer(ModelSerializer):
                 address=location_data['address'],
             )
 
-        # FIXME: do bulk creates yo!
+        # FIXME: *SLAM* There must be a better way!
         games = []
         for dt in datetimes:
             game = Game.objects.create(

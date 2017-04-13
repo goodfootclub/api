@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from rest_framework import permissions
 from rest_framework.decorators import list_route
@@ -11,6 +11,7 @@ from .serializers import (
     GameListSerializer,
     GameSerializer,
     LocationSerializer,
+    MyGameListSerializer,
     RsvpCreateSerializer,
     RsvpSerializer,
 )
@@ -24,40 +25,70 @@ class GameViewSet(AppViewSet):
     serializer_class = GameDetailsSerializer
     serializer_classes = {
         'list': GameListSerializer,
+        'my': MyGameListSerializer,
         'create': GameCreateSerializer,
     }
     ordering_fields = ('datetime', )
     search_fields = ('datetime', 'location__name', 'location__address')
 
+    def get_cuttoff_time(self):
+        """
+        Datetime after which games aren't displayed unless the `all` querry
+        parameter is specified
+        """
+        return datetime.utcnow() - timedelta(minutes=90)
+
     def get_queryset(self):
         """
-        Only return games in the future unless 'all' param is specified,
-        filter by team if required or list games for logged in user.
+        Depending on action and querry params either:
+         - my games (with my rsvp status)
+         - team games for `/teams/{team_pk}/games/` api
+         - pickup games for `/games/` api
         """
-        queryset = super().get_queryset()
-
-        if 'team_pk' in self.kwargs:
-            queryset = queryset.filter(teams__in=[self.kwargs['team_pk']])
 
         if self.action == 'my':
-            queryset = queryset.filter(players__in=[self.request.user])
+            return self.my_get_queryset()
 
-        if 'team_pk' not in self.kwargs and self.action == 'list':
-            # show pickup games only
-            queryset = queryset.filter(teams=None)
+        queryset = super().get_queryset()
 
-        if (
-            self.action not in ('list', 'my') or
-            'all' in self.request.query_params
-        ):
+        if self.action != 'list':
             return queryset
 
-        return queryset.filter(datetime__gt=datetime.utcnow())
+        if 'team_pk' in self.kwargs:
+            # Team games for a specific team
+            queryset = queryset.filter(teams__in=[self.kwargs['team_pk']])
+        else:
+            # Pickup games
+            queryset = queryset.filter(teams=None)
+
+        if 'all' not in self.request.query_params:
+            return queryset.filter(datetime__gt=self.get_cuttoff_time())
+
+        return queryset
+
+    def my_get_queryset(self):
+        """
+        Queryset for `my` action
+        """
+        queryset = RsvpStatus.objects.filter(player=self.request.user)
+
+        if 'all' in self.request.query_params:
+            return queryset
+
+        return queryset.filter(game__datetime__gt=self.get_cuttoff_time())
 
     @list_route(methods=['get'])
-    def my(self, request):
+    def my(self, *args, **kwargs):
         """Games for the logged in user"""
-        return super().list(request)
+        return super().list(*args, **kwargs)
+
+    def list(self, *args, **kwargs):
+        """
+        # My Games
+        Games for the logged-in user are available at
+        [/api/games/my/](/api/games/my/)
+        """
+        return super().list(*args, **kwargs)
 
 
 class LocationViewSet(AppViewSet):
