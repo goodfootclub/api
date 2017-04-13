@@ -35,7 +35,7 @@ class ApiRoot(APIView):
     """
 
     def get(self, request, format=None):
-        """List of available API endpints"""
+        """List of available API endpoints"""
         data = OrderedDict()
 
         for method in API_METHODS:
@@ -50,5 +50,4 @@ class ApiError(APIView):
     """
 
     def get(self, request, format=None):
-        """List of available API endpints"""
-        raise APIException("A very bad error just happened :(")
+        raise APIException("Test error, please ignore...")

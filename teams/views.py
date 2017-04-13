@@ -1,16 +1,16 @@
 import django_filters.rest_framework
+from rest_framework.decorators import list_route
 
 from main.viewsets import AppViewSet
-
 from .models import Team, Role
 from .serializers import (
-    RoleSerializer,
+    MyTeamListSerializer,
     RoleCreateSerializer,
+    RoleSerializer,
     TeamCreateSerializer,
     TeamDetailsSerializer,
     TeamListSerializer,
 )
-# from games.views import GamesList
 
 
 class TeamViewSet(AppViewSet):
@@ -21,14 +21,31 @@ class TeamViewSet(AppViewSet):
     serializer_class = TeamDetailsSerializer
     serializer_classes = {
         'list': TeamListSerializer,
+        'my': MyTeamListSerializer,
         'create': TeamCreateSerializer,
         'retrieve': TeamDetailsSerializer,
     }
     search_fields = ('info', 'name')
 
+    def get_queryset(self):
+        if self.action == 'my':
+            return Role.objects.all().filter(player=self.request.user)
+        else:
+            return super().get_queryset()
+
     def list(self, *args, **kwargs):
-        """Get a list of existing teams or create a new one"""
+        """Get a list of existing teams or create a new one
+
+        # My Teams
+        Teams for the logged-in user are available at
+        [/api/teams/my/](/api/teams/my/)
+        """
         return super().list(*args, **kwargs)
+
+    @list_route(methods=['get'])
+    def my(self, request):
+        """Teams for the logged in user"""
+        return super().list(request)
 
     def retrieve(self, *args, **kwargs):
         """

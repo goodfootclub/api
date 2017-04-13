@@ -14,6 +14,7 @@ from ..models import Team
 
 
 __all__ = [
+    'MyTeamListSerializer',
     'TeamCreateSerializer',
     'TeamDetailsSerializer',
     'TeamListSerializer',
@@ -26,13 +27,25 @@ class TeamListSerializer(ModelSerializer):
         model = Team
         fields = 'id', 'name', 'info', 'type'
 
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
+    def to_representation(self, team):
+        data = super().to_representation(team)
 
         request = self.context.get('request', None)
         if request and request.accepted_renderer.format == 'api':
-            data['url'] = reverse('team-detail', (obj.id, ),
+            data['url'] = reverse('team-detail', (team.id, ),
                                   request=request)
+        return data
+
+
+class MyTeamListSerializer(TeamListSerializer):
+    """
+    This takes a *Role* objects, instead of a Team object, but only uses
+    status from it, rest of the fields are for respective .team
+    """
+
+    def to_representation(self, role):
+        data = super().to_representation(role.team)
+        data['role'] = role.role
         return data
 
 
