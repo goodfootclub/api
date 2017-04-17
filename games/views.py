@@ -33,14 +33,14 @@ class GameViewSet(AppViewSet):
 
     def get_cuttoff_time(self):
         """
-        Datetime after which games aren't displayed unless the `all` querry
+        Datetime after which games aren't displayed unless the `all` query
         parameter is specified
         """
         return datetime.utcnow() - timedelta(minutes=90)
 
     def get_queryset(self):
         """
-        Depending on action and querry params either:
+        Depending on action and query params either:
          - my games (with my rsvp status)
          - team games for `/teams/{team_pk}/games/` api
          - pickup games for `/games/` api
@@ -90,6 +90,13 @@ class GameViewSet(AppViewSet):
         """
         return super().list(*args, **kwargs)
 
+    def retrieve(self, *args, **kwargs):
+        """
+        # Players
+        Players can be managed through [games/{id}/players](players)
+        """
+        return super().retrieve(*args, **kwargs)
+
 
 class LocationViewSet(AppViewSet):
     serializer_class = LocationSerializer
@@ -113,22 +120,26 @@ class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if request.user.is_superuser:
-            return True
-
         if request.method == 'POST':
             data = request.data
 
             if not data:
                 return True
 
-            new_status = data.get('rsvp', None)
-            new_team = data.get('team', None)
-            new_player_id = data.get('id', None)
+            try:
+                new_status = int(data.get('rsvp', None))
+                new_player_id = int(data.get('id', None))
+            except (TypeError, ValueError):
+                # It will raise a validation error during serializing
+                # and produce a sensible error message so here we can give
+                # id it green light without worries
+                return True
 
+            new_team = data.get('team', None)
             # Only pickup games for now, No teams allowed yet
             if new_team and new_team != RsvpStatus.NO_TEAM:
-                return False
+                # TODO: Check permission to be on that team
+                pass
 
             is_invite = new_status == RsvpStatus.INVITED
             is_request = new_status == RsvpStatus.REQUESTED_TO_JOIN

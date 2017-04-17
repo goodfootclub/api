@@ -1,3 +1,5 @@
+from django.db import IntegrityError
+
 from rest_framework.reverse import reverse
 from rest_framework.serializers import (
     ChoiceField,
@@ -6,6 +8,8 @@ from rest_framework.serializers import (
     ModelSerializer,
     ReadOnlyField,
 )
+
+from main.exceptions import RelationAlreadyExist
 from ..models import RsvpStatus
 
 
