@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 from os.path import abspath, dirname, join as join_path
-
+from datetime import timedelta
 
 # Build paths inside the project like this: join_path(BASE_DIR, ...)
 APP_DIR = dirname(dirname(dirname(abspath(__file__))))
@@ -136,6 +136,10 @@ SOCIAL_AUTH_PIPELINE = (
     'users.pipeline.facebook_extra_details',
 )
 
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': timedelta(days=60),
+    'JWT_ALLOW_REFRESH': True,
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -200,6 +204,11 @@ EMAIL_SUBJECT_PREFIX = '[Good Foot Club (DEVELOPMENT)] '
 # ReST framework
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
