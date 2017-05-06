@@ -20,6 +20,7 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "../web/dist", "/home/vagrant/web/dist", create: true
 
   config.vm.provision "ansible_local", run: "always" do |ansible|
+    # ansible.galaxy_role_file = "config/requirements.yml"
     ansible.provisioning_path = "/home/vagrant/api"
     ansible.playbook = "config/site.yml"
     # Uncomment the line below to get debug output

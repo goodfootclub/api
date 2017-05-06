@@ -35,12 +35,14 @@
   #   |__/ |___ |  | |  | | |__/ |___ |\/| |___ |\ |  |  [__
   #   |  \ |___ |_\| |__| | |  \ |___ |  | |___ | \|  |  ___]
   #
+
   - name: Run apt-get update
     apt: update_cache=yes
 
   - name: Ensure that required dependencies available with apt are installed
     apt: name={{ item }} state=present
     with_items:
+      - git
       # PostgreSQL
       - postgresql
       - postgresql-contrib
@@ -48,12 +50,11 @@
       # Nginx
       - nginx
 
-      # Python
+      # Python (python 3.6 installed separately)
       - python-dev
       - python-pip
       - python-psycopg2
-      - python-virtualenv
-      - python3-dev
+      # - libyaml-dev
 
       # For Pillow (as in http://pillow.readthedocs.io/en/latest/installation.html#linux-installation)
       - libtiff5-dev
@@ -72,6 +73,17 @@
       - postgis
       - postgresql-9.3-postgis-2.1
 
+  - name: Ensure that Python 3.6 is present (may take a while)
+    shell: |
+      wget https://www.python.org/ftp/python/3.6.1/Python-3.6.1.tar.xz
+      tar xvf Python-3.6.1.tar.xz
+      cd Python-3.6.1
+      ./configure
+      make altinstall
+    args:
+      chdir: /usr/src/
+      creates: /usr/local/bin/python3.6
+
   - name: Ensure that Supervisor is installed
     pip:
       name: supervisor
@@ -83,27 +95,17 @@
       state: 'latest'
     when: env != 'prod'
 
-
   - name: Ensure that project python requirements are installed
     pip:
       requirements: '{{ srv }}/api/requirements.txt'
       virtualenv: '{{ srv }}/.env'
-      virtualenv_python: python3.4
+      virtualenv_command: /usr/local/bin/python3.6 -m venv
 
   - name: Ensure that Gunicorn is installed
     pip:
       name: gunicorn
       state: 'latest'
       virtualenv: '{{ srv }}/.env'
-
-  # Two tasks above are broken. As of Nov 1st pip ignores virtualenv arg
-  # See https://github.com/ansible/ansible-modules-core/issues/5347
-  # Temporary requirements are installed with the script blow.
-  - name: (Temporary fix) Install project requirements and Gunicorn
-    shell:
-      cmd: |
-        {{ srv }}/.env/bin/pip install -r {{ srv }}/api/requirements.txt
-        {{ srv }}/.env/bin/pip install gunicorn
 
   #   ____ _ _    ____ ____ _   _ ____ ___ ____ _  _
   #   |___ | |    |___ [__   \_/  [__   |  |___ |\/|
