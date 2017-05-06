@@ -31,6 +31,14 @@
   #
   tasks:
 
+  - name: Make hostname a bit shorter for the development
+    replace:
+      path: /etc/hostname
+      regexp: 'vagrant\-ubuntu\-trusty\-64'
+      replace: 'ubuntu'
+      backup: yes
+    when: env == 'vagrant'
+
   #   ____ ____ ____ _  _ _ ____ ____ _  _ ____ _  _ ___ ____
   #   |__/ |___ |  | |  | | |__/ |___ |\/| |___ |\ |  |  [__
   #   |  \ |___ |_\| |__| | |  \ |___ |  | |___ | \|  |  ___]
@@ -230,6 +238,19 @@
       - randomlocations
       - randomgames
     when: env != 'prod'
+
+  - name: Create a django superuser if needed
+    shell: |
+      USER="admin"
+      PASS="admin"
+      EMAIL="admin@mail.com"
+      imp="from users.models import User"
+      create="User.objects.create_superuser('$USER', '$EMAIL', '$PASS')"
+      cond="User.objects.filter(username='$USER').count() == 0"
+      printf "$imp;$cond and $create" | ../.env/bin/python manage.py shell
+    args:
+      chdir: '{{ srv }}/api'
+    when: env == 'vagrant'
 
   # Supervisor
   - name: Ensure that Supervisor configuration file is up to date

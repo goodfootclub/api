@@ -9,3 +9,4 @@ class LocationSerializer(ModelSerializer):
 
     class Meta:
         model = Location
+        fields = '__all__'
