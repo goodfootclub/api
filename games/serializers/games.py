@@ -223,6 +223,7 @@ class GameSerializer(ModelSerializer):
 
     class Meta:
         model = Game
+        fields = '__all__'
 
     def to_internal_value(self, data):
         # Rsvps are managed with a separate view
