@@ -62,7 +62,8 @@
       - python-dev
       - python-pip
       - python-psycopg2
-      # - libyaml-dev
+      - libsqlite3-dev
+
 
       # For Pillow (as in http://pillow.readthedocs.io/en/latest/installation.html#linux-installation)
       - libtiff5-dev
@@ -86,7 +87,7 @@
       wget https://www.python.org/ftp/python/3.6.1/Python-3.6.1.tar.xz
       tar xvf Python-3.6.1.tar.xz
       cd Python-3.6.1
-      ./configure
+      ./configure --enable-loadable-sqlite-extensions
       make altinstall
     args:
       chdir: /usr/src/
@@ -143,12 +144,15 @@
     vars:
       ansible_ssh_pipelining: true
     postgresql_db:
-      name: '{{ db_name }}'
+      name: '{{ item }}'
       encoding: 'UTF-8'
       lc_collate: 'en_US.UTF-8'
       lc_ctype: 'en_US.UTF-8'
       template: 'template0'
       state: present
+    with_items:
+      - '{{ db_name }}'
+      - '{{ db_name }}_test'
 
   - name: Ensure that database user exists
     become: yes
@@ -156,13 +160,15 @@
     vars:
       ansible_ssh_pipelining: true
     postgresql_user:
-      db: '{{ db_name }}'
+      db: '{{ item }}'
       name: '{{ db_user }}'
       password: '{{ db_password }}'
       priv: ALL
       role_attr_flags: SUPERUSER
       state: present
-
+    with_items:
+      - '{{ db_name }}'
+      - '{{ db_name }}_test'
   #   _  _ ____ _ _  _ _  _
   #   |\ | | __ | |\ |  \/
   #   | \| |__] | | \| _/\_
@@ -250,6 +256,14 @@
       printf "$imp;$cond and $create" | ../.env/bin/python manage.py shell
     args:
       chdir: '{{ srv }}/api'
+    when: env == 'vagrant'
+
+  - name: Turn on virtualenv and change dir to the api automatically
+    blockinfile:
+      path: /home/vagrant/.bashrc
+      block: |
+        source {{ srv }}/.env/bin/activate
+        cd {{ srv }}/api
     when: env == 'vagrant'
 
   # Supervisor

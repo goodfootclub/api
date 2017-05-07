@@ -16,7 +16,7 @@ pytest-cov==2.4.0
 pytest-django==3.1.2
 pytest-testmon==0.9.4
 pytest-watch==4.1.0
-pytest==3.0.7
+pytest==2.9.2
 python-dateutil==2.6.0
 # python-social-auth==0.2.21
 social-auth-app-django==1.1.0

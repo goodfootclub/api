@@ -19,3 +19,9 @@
 
 *.sublime-project*
 .idea
+
+
+### Tests ###
+.cache/*
+.coverage*
+htmlcov/*
