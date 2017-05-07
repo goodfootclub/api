@@ -24,7 +24,7 @@ before_install:
   - export DJANGO_SETTINGS_MODULE=gfc.settings.travis
 
 install:
-  - mkdir logs
+  - mkdir logs && touch logs/app-debug.log
   - psql -U postgres -c "create extension postgis"
   - pip install -r requirements.txt
 
