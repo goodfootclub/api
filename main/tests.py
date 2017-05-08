@@ -1,5 +1,8 @@
-import pytz
+from datetime import timedelta
+from random import randint
+
 from django.contrib.gis.geos import Point
+from django.utils import timezone
 from mixer.backend.django import mixer
 
 
@@ -16,5 +19,5 @@ mixer.register(
 # For testing we need to create games in the future by default
 mixer.register(
     'games.Game',
-    datetime=mixer.faker.date_time_between(start_date='now', tzinfo=pytz.UTC),
+    datetime=timezone.now() + timedelta(randint(1, 500)),
 )

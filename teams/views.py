@@ -22,6 +22,7 @@ class TeamViewSet(AppViewSet):
     serializer_classes = {
         'list': TeamListSerializer,
         'my': MyTeamListSerializer,
+        'invites': MyTeamListSerializer,
         'create': TeamCreateSerializer,
         'retrieve': TeamDetailsSerializer,
     }
@@ -29,7 +30,15 @@ class TeamViewSet(AppViewSet):
 
     def get_queryset(self):
         if self.action == 'my':
-            return Role.objects.all().filter(player=self.request.user)
+            return Role.objects.all().filter(
+                player=self.request.user,
+                role__gt=Role.INVITED,
+            )
+        elif self.action == 'invites':
+            return Role.objects.all().filter(
+                player=self.request.user,
+                role=Role.INVITED,
+            )
         else:
             return super().get_queryset()
 
@@ -39,12 +48,21 @@ class TeamViewSet(AppViewSet):
         # My Teams
         Teams for the logged-in user are available at
         [/api/teams/my/](/api/teams/my/)
+
+        # Invites
+        Pending team invites are available at
+        [/api/teams/invites/](/api/teams/invites/)
         """
         return super().list(*args, **kwargs)
 
     @list_route(methods=['get'])
     def my(self, request):
         """Teams for the logged in user"""
+        return super().list(request)
+
+    @list_route(methods=['get'])
+    def invites(self, request):
+        """Invites to join a team"""
         return super().list(request)
 
     def retrieve(self, *args, **kwargs):
