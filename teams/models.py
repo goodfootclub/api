@@ -1,4 +1,7 @@
+from datetime import datetime, timedelta
+
 from django.db import models
+from django.db.transaction import atomic
 
 from users.models import User
 
@@ -67,3 +70,23 @@ class Role(models.Model):
     class Meta:
         unique_together = 'player', 'team'
         ordering = ['-role']
+
+    @atomic
+    def save(self, *args, **kwargs):
+        new = self.id is None
+        role = super().save(*args, **kwargs)
+
+        if new:
+            # New player. Let's add him to existing games
+            # FIXME: can't import at the top (circular imports)
+            from games.models import RsvpStatus
+            games = self.team.games.filter(datetime__gt=datetime.utcnow())
+
+            for game in games:
+                RsvpStatus.objects.get_or_create(
+                    game=game,
+                    player=self.player,
+                    status=RsvpStatus.INVITED,
+                )
+
+        return role

@@ -55,5 +55,5 @@ def test_game_create():
     assert res.status_code == status.HTTP_201_CREATED, \
         'Team manager can invite players to his teams'
 
-    # assert player2 in game.players.all(), \
-    #     'Player joining a team should be invited to the future team games'
+    assert player2 in game.players.all(), \
+        'Player joining a team should be invited to the future team games'
