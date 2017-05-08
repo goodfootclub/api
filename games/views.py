@@ -26,6 +26,7 @@ class GameViewSet(AppViewSet):
     serializer_classes = {
         'list': GameListSerializer,
         'my': MyGameListSerializer,
+        'invites': MyGameListSerializer,
         'create': GameCreateSerializer,
     }
     ordering_fields = ('datetime', )
@@ -49,6 +50,9 @@ class GameViewSet(AppViewSet):
         if self.action == 'my':
             return self.my_get_queryset()
 
+        if self.action == 'invites':
+            return self.my_get_queryset(invites=True)
+
         queryset = super().get_queryset()
 
         if self.action != 'list':
@@ -66,11 +70,16 @@ class GameViewSet(AppViewSet):
 
         return queryset
 
-    def my_get_queryset(self):
+    def my_get_queryset(self, invites=False):
         """
         Queryset for `my` action
         """
         queryset = RsvpStatus.objects.filter(player=self.request.user)
+
+        if invites:
+            queryset = queryset.filter(status=RsvpStatus.INVITED)
+        else:
+            queryset = queryset.filter(status__gt=RsvpStatus.INVITED)
 
         if 'all' in self.request.query_params:
             return queryset
@@ -82,11 +91,19 @@ class GameViewSet(AppViewSet):
         """Games for the logged in user"""
         return super().list(*args, **kwargs)
 
+    @list_route(methods=['get'])
+    def invites(self, *args, **kwargs):
+        """Game invites"""
+        return super().list(*args, **kwargs)
+
     def list(self, *args, **kwargs):
         """
         # My Games
         Games for the logged-in user are available at
         [/api/games/my/](/api/games/my/)
+
+        # Pending invites
+        Invites are available at [/api/games/invites/](/api/games/invites/)
         """
         return super().list(*args, **kwargs)
 
