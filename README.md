@@ -1,5 +1,15 @@
 # Good Foot Club Api
 
+Back end for the goodfoot.club project
+
+**Master:**
+[![Build Status](https://travis-ci.org/goodfootclub/api.svg?branch=master)](https://travis-ci.org/goodfootclub/api)
+[![codecov](https://codecov.io/gh/goodfootclub/api/branch/master/graph/badge.svg)](https://codecov.io/gh/goodfootclub/api)
+
+**Develop:**
+[![Build Status](https://travis-ci.org/goodfootclub/api.svg?branch=develop)](https://travis-ci.org/goodfootclub/api)
+[![codecov](https://codecov.io/gh/goodfootclub/api/branch/develop/graph/badge.svg)](https://codecov.io/gh/goodfootclub/api)
+
 ## Requirements
 
 For quick dev environment setup Vagrant config with Ansible provisioning is
