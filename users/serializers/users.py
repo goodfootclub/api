@@ -23,3 +23,16 @@ class CurrentUserSerializer(UserSerializer):
         fields = UserSerializer.Meta.fields + (
             'phone', 'email', 'managed_teams',
         )
+
+    def to_representation(self, user: User):
+        data = super().to_representation(user)
+
+        inv_total, inv_games, inv_teams = user.get_invites_counts()
+        if inv_total:
+            data['invites'] = {'total': inv_total}
+            if inv_games:
+                data['invites']['games'] = inv_games
+            if inv_teams:
+                data['invites']['teams'] = inv_teams
+
+        return data

@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from django.db import models
 from django.db.transaction import atomic
 
-from users.models import User
-
 
 class Team(models.Model):
     """Team
@@ -30,9 +28,9 @@ class Team(models.Model):
     )
 
     info = models.CharField(max_length=1000, null=True, blank=True)
-    managers = models.ManyToManyField(User, related_name='managed_teams')
+    managers = models.ManyToManyField('users.User', related_name='managed_teams')
     name = models.CharField(max_length=30)
-    players = models.ManyToManyField(User, related_name='teams',
+    players = models.ManyToManyField('users.User', related_name='teams',
                                      through='Role')
     slots_female = models.IntegerField(null=True, default=0)
     slots_male = models.IntegerField(null=True, default=0)
@@ -63,7 +61,7 @@ class Role(models.Model):
         (SUBSTITUTE, 'Substitute'),
     )
 
-    player = models.ForeignKey(User)
+    player = models.ForeignKey('users.User')
     role = models.IntegerField(choices=ROLE_CHOICES, default=INVITED)
     team = models.ForeignKey(Team)
 

@@ -1,7 +1,6 @@
 from django.contrib.gis.db import models
 
 from teams.models import Team
-from users.models import User
 
 
 class Location(models.Model):
@@ -42,9 +41,9 @@ class Game(models.Model):
     description = models.CharField(blank=True, max_length=255, default='')
     duration = models.IntegerField(null=True)
     location = models.ForeignKey(Location, related_name='games')
-    organizer = models.ForeignKey(User, related_name='games_created')
+    organizer = models.ForeignKey('users.User', related_name='games_created')
     teams = models.ManyToManyField(Team, related_name='games')
-    players = models.ManyToManyField(User, related_name='games',
+    players = models.ManyToManyField('users.User', related_name='games',
                                      through='RsvpStatus')
 
     class Meta:
@@ -84,7 +83,7 @@ class RsvpStatus(models.Model):
     NO_TEAM = 2
 
     game = models.ForeignKey(Game, related_name='rsvps')
-    player = models.ForeignKey(User, related_name='rsvps')
+    player = models.ForeignKey('users.User', related_name='rsvps')
     status = models.IntegerField(choices=RSVP_CHOICES, default=INVITED)
     team = models.IntegerField(default=NO_TEAM)
 

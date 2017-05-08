@@ -1,7 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
 from timezone_field import TimeZoneField
+
+from games.models import RsvpStatus
+from teams.models import Role
 
 
 class User(AbstractUser):
@@ -36,3 +38,13 @@ class User(AbstractUser):
 
     class Meta(AbstractUser.Meta):
         pass
+
+    def get_invites_counts(self):
+        """Get counts of pending game and team invitations
+
+        player.get_invites_counts() -> (total, games, teams)
+        """
+        game_invites = self.rsvps.filter(status=RsvpStatus.INVITED).count()
+        team_invites = self.role_set.filter(role=Role.INVITED).count()
+
+        return game_invites + team_invites, game_invites, team_invites

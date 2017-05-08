@@ -30,7 +30,7 @@ def test_game_create():
     address = mixer.faker.address()
     location_name = ' '.join(address.split()[1:3])
     res = client.post(games_url, {
-        'datetime': datetime.utcnow() + timedelta(24 * 60),
+        'datetime': datetime.utcnow() + timedelta(1),
         'location': {
             'address': address,
             'name': location_name,
