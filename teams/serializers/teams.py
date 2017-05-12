@@ -10,7 +10,7 @@ from rest_framework.serializers import (
 
 from users.serializers import PlayerListSerializer
 from . import RoleSerializer
-from ..models import Team
+from ..models import Team, Role
 
 
 __all__ = [
