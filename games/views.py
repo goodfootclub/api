@@ -77,9 +77,9 @@ class GameViewSet(AppViewSet):
         queryset = RsvpStatus.objects.filter(player=self.request.user)
 
         if invites:
-            queryset = queryset.filter(status=RsvpStatus.INVITED)
-        else:
-            queryset = queryset.filter(status__gt=RsvpStatus.INVITED)
+            return queryset.filter(status=RsvpStatus.INVITED)
+
+        queryset = queryset.filter(status__gt=RsvpStatus.INVITED)
 
         if 'all' in self.request.query_params:
             return queryset
