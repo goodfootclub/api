@@ -49,9 +49,10 @@ class MyGameListSerializer(GameListSerializer):
     uses status from it, rest of the fields are for respective .game
     """
 
-    def to_representation(self, rsvp):
+    def to_representation(self, rsvp: RsvpStatus):
         data = super().to_representation(rsvp.game)
         data['rsvp'] = rsvp.status
+        data['rsvp_id'] = rsvp.id
         data['team'] = rsvp.team
         return data
 

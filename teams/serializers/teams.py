@@ -43,9 +43,10 @@ class MyTeamListSerializer(TeamListSerializer):
     status from it, rest of the fields are for respective .team
     """
 
-    def to_representation(self, role):
+    def to_representation(self, role: Role):
         data = super().to_representation(role.team)
         data['role'] = role.role
+        data['role_id'] = role.id
         return data
 
 
