@@ -23,6 +23,7 @@ class TeamViewSet(AppViewSet):
         'list': TeamListSerializer,
         'my': MyTeamListSerializer,
         'invites': MyTeamListSerializer,
+        'managed': TeamListSerializer,
         'create': TeamCreateSerializer,
         'retrieve': TeamDetailsSerializer,
     }
@@ -34,6 +35,8 @@ class TeamViewSet(AppViewSet):
                 player=self.request.user,
                 role__gt=Role.INVITED,
             )
+        elif self.action == 'managed':
+            return self.request.user.managed_teams.all()
         elif self.action == 'invites':
             return Role.objects.all().filter(
                 player=self.request.user,
@@ -49,6 +52,10 @@ class TeamViewSet(AppViewSet):
         Teams for the logged-in user are available at
         [/api/teams/my/](/api/teams/my/)
 
+        # Teams Managed by Me
+        Teams for the logged-in user are available at
+        [/api/teams/managed/](/api/teams/managed/)
+
         # Invites
         Pending team invites are available at
         [/api/teams/invites/](/api/teams/invites/)
@@ -58,6 +65,11 @@ class TeamViewSet(AppViewSet):
     @list_route(methods=['get'])
     def my(self, request):
         """Teams for the logged in user"""
+        return super().list(request)
+
+    @list_route(methods=['get'])
+    def managed(self, request):
+        """Teams managed by the logged in user"""
         return super().list(request)
 
     @list_route(methods=['get'])

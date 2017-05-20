@@ -69,3 +69,17 @@ def test_team_add_player():
         'Invited player can accept an invite'
 
     assert player in team.players.all(), 'Player should be in the team now'
+
+
+def test_my_teams():
+    user = mixer.blend('users.User')
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    team = mixer.blend('teams.Team', managers=[user])
+    url = reverse('team-managed')
+    res = client.get(url)
+
+    assert res.status_code == status.HTTP_200_OK, \
+
+    assert res.data['count'] == 1, \
