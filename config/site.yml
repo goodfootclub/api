@@ -17,6 +17,7 @@
     env: vagrant
     host: '{{ inventory_hostname }}'
     project_name: gfc
+    pyenv: '{{ srv }}/env36'
     remote_user: vagrant
     srv: /home/vagrant
     use_ssl: false
@@ -107,14 +108,14 @@
   - name: Ensure that project python requirements are installed
     pip:
       requirements: '{{ srv }}/api/requirements.txt'
-      virtualenv: '{{ srv }}/.env'
+      virtualenv: '{{ pyenv }}'
       virtualenv_command: /usr/local/bin/python3.6 -m venv
 
   - name: Ensure that Gunicorn is installed
     pip:
       name: gunicorn
       state: 'latest'
-      virtualenv: '{{ srv }}/.env'
+      virtualenv: '{{ pyenv }}'
 
   #   ____ _ _    ____ ____ _   _ ____ ___ ____ _  _
   #   |___ | |    |___ [__   \_/  [__   |  |___ |\/|
@@ -224,19 +225,19 @@
     django_manage: >
       command=migrate
       app_path={{ srv }}/api
-      virtualenv={{ srv }}/.env
+      virtualenv={{ pyenv }}
 
   - name: Collect static files
     django_manage: >
       command=collectstatic
       app_path={{ srv }}/api
-      virtualenv={{ srv }}/.env
+      virtualenv={{ pyenv }}
 
   - name: Generate random data for testing and development
     django_manage: >
       command={{ item }}
       app_path={{ srv }}/api
-      virtualenv={{ srv }}/.env
+      virtualenv={{ pyenv }}
     with_items:
       - randomusers
       - randomteams
@@ -262,7 +263,7 @@
     blockinfile:
       path: /home/vagrant/.bashrc
       block: |
-        source {{ srv }}/.env/bin/activate
+        source {{ pyenv }}/bin/activate
         cd {{ srv }}/api
     when: env == 'vagrant'
 
