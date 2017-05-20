@@ -81,5 +81,7 @@ def test_my_teams():
     res = client.get(url)
 
     assert res.status_code == status.HTTP_200_OK, \
+        'Should be able to retrieve managed teams'
 
     assert res.data['count'] == 1, \
+        'Should be exactly one'
