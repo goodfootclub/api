@@ -32,8 +32,7 @@ class TeamListSerializer(ModelSerializer):
 
         request = self.context.get('request', None)
         if request and request.accepted_renderer.format == 'api':
-            data['url'] = reverse('team-detail', (team.id, ),
-                                  request=request)
+            data['url'] = reverse('team-detail', (team.id, ), request=request)
         return data
 
 
@@ -52,8 +51,8 @@ class MyTeamListSerializer(TeamListSerializer):
 
 class TeamCreateSerializer(TeamListSerializer):
 
-    def create(self, *args, **kwargs):
-        team = super().create(*args, **kwargs)
+    def create(self, validated_data):
+        team = super().create(validated_data)
         request = self.context.get('request', None)
         if request:
             team.managers.add(request.user)

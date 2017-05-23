@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from .models import Role
+from .models import Role, Team
 
 pytestmark = pytest.mark.django_db
 
@@ -85,3 +85,25 @@ def test_my_teams():
 
     assert res.data['count'] == 1, \
         'Should be exactly one'
+
+
+def test_team_creator_added_as_player():
+    """
+    User that creates a team should be added to that teams as a player
+    automatically
+    """
+    user = mixer.blend('users.User')
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    create_url = reverse('team-list')
+    res = client.post(create_url, {'name': 'Test team'})
+
+    team = Team.objects.get(id=res.data['id'])
+
+    assert user in team.players.all(), 'Creator should be a player'
+
+    user2 = mixer.blend('users.User')
+    team.managers.add(user2)
+    assert user2 not in team.players.all(), \
+        'Any extra managers are not added automatically'

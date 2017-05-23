@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
 
+from django.core.exceptions import MultipleObjectsReturned
+from django.db.models.signals import m2m_changed
 from django.db import models
 from django.db.transaction import atomic
+from django.dispatch import receiver
 
 
 class Team(models.Model):
@@ -88,3 +91,16 @@ class Role(models.Model):
                 )
 
         return role
+
+
+@receiver(m2m_changed, sender=Team.managers.through)
+def add_team_creator_as_a_captain(sender, instance, action, **kwargs):
+    if action != 'post_add':
+        return
+    try:
+        creator = instance.managers.get()
+    except MultipleObjectsReturned:
+        # Team was already created (had a manager), nothing to do here...
+        return
+
+    Role.objects.create(player=creator, team=instance, role=Role.CAPTAIN)
