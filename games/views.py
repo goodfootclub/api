@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-
 from rest_framework import permissions
 from rest_framework.decorators import list_route
 
@@ -32,13 +30,6 @@ class GameViewSet(AppViewSet):
     ordering_fields = ('datetime', )
     search_fields = ('datetime', 'location__name', 'location__address')
 
-    def get_cuttoff_time(self):
-        """
-        Datetime after which games aren't displayed unless the `all` query
-        parameter is specified
-        """
-        return datetime.utcnow() - timedelta(minutes=90)
-
     def get_queryset(self):
         """
         Depending on action and query params either:
@@ -66,7 +57,7 @@ class GameViewSet(AppViewSet):
             queryset = queryset.filter(teams=None)
 
         if 'all' not in self.request.query_params:
-            return queryset.filter(datetime__gt=self.get_cuttoff_time())
+            return queryset.filter(datetime__gt=Game.get_cuttoff_time())
 
         return queryset
 
@@ -84,7 +75,7 @@ class GameViewSet(AppViewSet):
         if 'all' in self.request.query_params:
             return queryset
 
-        return queryset.filter(game__datetime__gt=self.get_cuttoff_time())
+        return queryset.filter(game__datetime__gt=Game.get_cuttoff_time())
 
     @list_route(methods=['get'])
     def my(self, *args, **kwargs):

@@ -1,14 +1,17 @@
+from datetime import datetime, timedelta
+
 from django.contrib.gis.db import models
 
 from teams.models import Team
 
 
 class Location(models.Model):
-    """Game location
+    """
+    Game location
 
     Fields:
-        address (String) - address
-        gis? (Point) - lat lng coordinates
+        address? (String) - address
+        gis? (Point) - STRID 4326 gis coordinates
         name (String) - display name
     """
     address = models.CharField(max_length=255, blank=True, null=True)
@@ -16,22 +19,23 @@ class Location(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"Location(name={self.name!r}, address={self.address!r})"
+        return f'Location(name={self.name!r}, address={self.address!r})'
 
     class Meta:
         unique_together = ('address', 'name')
 
 
 class Game(models.Model):
-    """Game event
+    """
+    Game event
 
     Fields:
         datetime (DateTime) - Time and date for an event;
-        duration? (Int) - number in minutes
         description? (String) - notes, reminders, etc...
+        duration? (Int) - number in minutes
         location (FK) - Location, place where a game will take place
-        teams? (MtM) - 0, 1 or 2 teams (pickup games have no teams)
         organizer? (FK) - User, creator of an event
+        teams? (MtM) - 0, 1 or 2 teams (pickup games have no teams)
     """
 
     datetime = models.DateTimeField()
@@ -43,8 +47,34 @@ class Game(models.Model):
     players = models.ManyToManyField('users.User', related_name='games',
                                      through='RsvpStatus')
 
+    def __str__(self):
+        return f'Game(datetime={self.datetime!r}, location={self.location})'
+
     class Meta:
         ordering = ['datetime']
+
+    @staticmethod
+    def get_cuttoff_time():
+        """
+        More often then not we don't care about games in the past. This
+        method returns datetime to use in a query with datetime__gt filter
+        """
+        return datetime.utcnow() - timedelta(minutes=90)
+
+    class GameQuerySet(models.QuerySet):
+        """Support "future" games query filter"""
+        def future(self):
+            return self.filter(datetime__gt=Game.get_cuttoff_time())
+
+    class GameManager(models.Manager):
+        """Support "future" games query filter"""
+        def get_queryset(self):
+            return Game.GameQuerySet(self.model, using=self.db)
+
+        def future(self):
+            return self.get_queryset().future()
+
+    objects = GameManager()
 
 
 class RsvpStatus(models.Model):
