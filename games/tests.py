@@ -7,9 +7,14 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from teams.models import Role
-from .models import Game
+from .models import Game, Location
 
 pytestmark = pytest.mark.django_db
+
+
+def test_location_model():
+    location = mixer.blend('games.Location')
+    assert isinstance(eval(str(location)), Location)
 
 
 def test_game_create():

@@ -23,5 +23,6 @@
 
 ### Tests ###
 .cache/*
-.coverage*
+.coverage
+.coverage.*
 htmlcov/*

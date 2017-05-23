@@ -15,11 +15,8 @@ class Location(models.Model):
     gis = models.PointField(null=True)
     name = models.CharField(max_length=255)
 
-    def __unicode__(self):
-        return "Location(name='{name}')".format(name=self.name)
-
     def __str__(self):
-        return "{name}".format(name=self.name)
+        return f"Location(name={self.name!r}, address={self.address!r})"
 
     class Meta:
         unique_together = ('address', 'name')

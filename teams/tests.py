@@ -107,3 +107,7 @@ def test_team_creator_added_as_player():
     team.managers.add(user2)
     assert user2 not in team.players.all(), \
         'Any extra managers are not added automatically'
+
+
+def test_team_permissions():
+    pass
