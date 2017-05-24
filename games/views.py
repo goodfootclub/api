@@ -63,7 +63,7 @@ class GameViewSet(AppViewSet):
 
     def my_get_queryset(self, invites=False):
         """
-        Queryset for `my` action
+        Queryset for `my` and `invites` action
         """
         queryset = RsvpStatus.objects.filter(player=self.request.user)
 

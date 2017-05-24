@@ -1,5 +1,5 @@
 import pytest
-from main.tests import mixer
+from main.tests import mixer, client
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -109,5 +109,12 @@ def test_team_creator_added_as_player():
         'Any extra managers are not added automatically'
 
 
-def test_team_permissions():
-    pass
+def test_team_games(client):
+    team = mixer.blend('teams.Team')
+    mixer.cycle(5).blend('games.Game', teams=[team])
+
+    url = reverse('team-games-list', (team.id, ))
+    res = client.get(url)
+
+    assert res.status_code == status.HTTP_200_OK, 'Request should succeed'
+    assert res.data['count'] == 5, 'User should have 5 invites'

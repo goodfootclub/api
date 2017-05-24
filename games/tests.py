@@ -6,9 +6,9 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from main.tests import mixer
+from main.tests import mixer, client
 from teams.models import Role
-from .models import Game, Location
+from .models import Game, Location, RsvpStatus
 
 pytestmark = pytest.mark.django_db
 
@@ -82,3 +82,71 @@ def test_game_create():
 
     assert player2 in game.players.all(), \
         'Player joining a team should be invited to the future team games'
+
+
+def test_my_games(client):
+    mixer.cycle(5).blend(
+        'games.RsvpStatus',
+        status=RsvpStatus.GOING,
+        player=client.user
+    )
+
+    url = reverse('game-my')
+    res = client.get(url)
+
+    assert res.status_code == status.HTTP_200_OK, 'Request should succeed'
+    assert res.data['count'] == 5, 'User should have 5 games'
+
+
+def test_game_invites(client):
+    mixer.cycle(5).blend(
+        'games.RsvpStatus',
+        status=RsvpStatus.INVITED,
+        player=client.user
+    )
+
+    url = reverse('game-invites')
+    res = client.get(url)
+
+    assert res.status_code == status.HTTP_200_OK, 'Request should succeed'
+    assert res.data['count'] == 5, 'User should have 5 invites'
+
+
+def test_pickup_games(client):
+    mixer.cycle(5).blend('games.Game')
+
+    url = reverse('game-list')
+    res = client.get(url)
+
+    assert res.status_code == status.HTTP_200_OK, 'Request should succeed'
+    assert res.data['count'] == 5, 'Should be 5 games'
+
+
+def test_game_in_the_past(client):
+    game = mixer.blend('games.Game', datetime=datetime.utcnow() - timedelta(1))
+
+    list_url = reverse('game-list')
+    res = client.get(list_url)
+
+    assert res.status_code == status.HTTP_200_OK, 'Request should succeed'
+    assert res.data['results'] == [], 'The game should not be in the results'
+
+    res = client.get(list_url, {'all': 'true'})
+
+    assert res.data['count'] == 1, 'Unless `all` param is supplied'
+
+    retrive_url = reverse('game-detail', (game.id, ))
+    res = client.get(retrive_url)
+
+    assert res.status_code == status.HTTP_200_OK, \
+        'Game should be retrievable without additional parameters'
+
+    mixer.blend(
+        'games.RsvpStatus',
+        game=game,
+        player=client.user,
+        status=RsvpStatus.GOING
+    )
+    my_url = reverse('game-my')
+    res = client.get(my_url, {'all': 'true'})
+    assert res.data['count'] == 1, '`all` param should work for my games'
