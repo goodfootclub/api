@@ -156,8 +156,8 @@ def test_game_edit_permission(client):
     users_game = mixer.blend('games.Game', organizer=client.user)
     other_game = mixer.blend('games.Game')
 
-    users_game_url = reverse('game-detail', (users_game.pk, ))
-    other_game_url = reverse('game-detail', (other_game.pk, ))
+    users_game_url = reverse('game-detail', (users_game.id, ))
+    other_game_url = reverse('game-detail', (other_game.id, ))
 
     res = client.patch(users_game_url, {'description': 'test'})
     assert res.status_code == status.HTTP_200_OK, \
@@ -166,3 +166,39 @@ def test_game_edit_permission(client):
     res = client.patch(other_game_url, {'description': 'test'})
     assert res.status_code == status.HTTP_403_FORBIDDEN, \
         'User should not be able to edit other users games'
+
+
+def test_game_organizer_can_invite():
+    organizer = mixer.blend('users.User')
+    players = mixer.cycle(6).blend('users.User')
+    pickup_game = mixer.blend('games.Game', organizer=organizer)
+    other_game = mixer.blend('games.Game')
+
+    pickup_url = reverse('rsvp-list', (pickup_game.id, ))
+    other_url = reverse('rsvp-list', (other_game.id, ))
+
+    client = APIClient()
+    client.force_authenticate(organizer)
+
+    res = client.post(pickup_url, {
+        'id': players[0].id,
+        'rsvp': RsvpStatus.INVITED,
+    })
+
+    assert res.status_code == status.HTTP_201_CREATED, \
+        'Organizer can invite a player to his game'
+    assert players[0].rsvps.count() == 1
+    assert players[0].rsvps.get().status == RsvpStatus.INVITED
+
+    for i, (rsvp, _) in enumerate(RsvpStatus.RSVP_CHOICES):
+        if rsvp == RsvpStatus.INVITED:
+            continue
+
+        res = client.post(pickup_url, {'id': players[i + 1].id, 'rsvp': rsvp})
+        assert res.status_code == status.HTTP_403_FORBIDDEN, \
+            'Organizer can not do anything other than inviting'
+
+    for i, (rsvp, _) in enumerate(RsvpStatus.RSVP_CHOICES):
+        res = client.post(other_url, {'id': players[i + 1].id, 'rsvp': rsvp})
+        assert res.status_code == status.HTTP_403_FORBIDDEN, \
+            'Organizer can not do anything in another game'
