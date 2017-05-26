@@ -168,7 +168,15 @@ def test_game_edit_permission(client):
         'User should not be able to edit other users games'
 
 
-def test_game_organizer_can_invite():
+def test_rsvp_list(client):
+    game = mixer.blend('games.Game')
+    rsvps = mixer.cycle(5).blend('games.RsvpStatus', game=game)
+
+    res = client.get(reverse('rsvp-list', (game.id, )))
+    assert res.data['count'] == 5, 'Should have 5 rsvps'
+
+
+def test_pickup_organizer_can_invite():
     organizer = mixer.blend('users.User')
     players = mixer.cycle(6).blend('users.User')
     pickup_game = mixer.blend('games.Game', organizer=organizer)
@@ -202,3 +210,19 @@ def test_game_organizer_can_invite():
         res = client.post(other_url, {'id': players[i + 1].id, 'rsvp': rsvp})
         assert res.status_code == status.HTTP_403_FORBIDDEN, \
             'Organizer can not do anything in another game'
+
+
+def test_can_join_pickup(client):
+    pickup_games = mixer.cycle(5).blend('games.Game')
+
+    for game, (rsvp, _) in zip(pickup_games, RsvpStatus.RSVP_CHOICES):
+        res = client.post(
+            reverse('rsvp-list', (game.id, )),
+            {'id': client.user.id, 'rsvp': rsvp},
+        )
+        if rsvp > RsvpStatus.INVITED:
+            assert res.status_code == status.HTTP_201_CREATED, \
+                'User can join any pickup game he likes'
+        else:
+            assert res.status_code == status.HTTP_403_FORBIDDEN, \
+                'Invining yourself to a game you can join does not make sense'
