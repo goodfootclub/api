@@ -150,3 +150,19 @@ def test_game_in_the_past(client):
     my_url = reverse('game-my')
     res = client.get(my_url, {'all': 'true'})
     assert res.data['count'] == 1, '`all` param should work for my games'
+
+
+def test_game_edit_permission(client):
+    users_game = mixer.blend('games.Game', organizer=client.user)
+    other_game = mixer.blend('games.Game')
+
+    users_game_url = reverse('game-detail', (users_game.pk, ))
+    other_game_url = reverse('game-detail', (other_game.pk, ))
+
+    res = client.patch(users_game_url, {'description': 'test'})
+    assert res.status_code == status.HTTP_200_OK, \
+        'User should be able to edit his game'
+
+    res = client.patch(other_game_url, {'description': 'test'})
+    assert res.status_code == status.HTTP_403_FORBIDDEN, \
+        'User should not be able to edit other users games'

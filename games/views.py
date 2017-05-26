@@ -3,6 +3,7 @@ from rest_framework.decorators import list_route
 
 from main.viewsets import AppViewSet
 from .models import Game, Location, RsvpStatus
+from .permissions import GameUpdateDestroyPermission
 from .serializers import (
     GameCreateSerializer,
     GameDetailsSerializer,
@@ -28,6 +29,7 @@ class GameViewSet(AppViewSet):
         'create': GameCreateSerializer,
     }
     ordering_fields = ('datetime', )
+    permission_classes = (GameUpdateDestroyPermission, )
     search_fields = ('datetime', 'location__name', 'location__address')
 
     def get_queryset(self):
@@ -225,7 +227,7 @@ class RsvpViewSet(AppViewSet):
         'create': RsvpCreateSerializer,
     }
     queryset = RsvpStatus.objects.all()
-    permission_classes = RsvpCreateUpdateDestroyPermission,
+    permission_classes = (RsvpCreateUpdateDestroyPermission, )
 
     def get_queryset(self):
         return super().get_queryset().filter(game_id=self.kwargs['game_pk'])
