@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from itertools import chain, product
 
 import pytest
 from django.db.utils import IntegrityError
@@ -167,6 +168,13 @@ def test_game_edit_permission(client):
     assert res.status_code == status.HTTP_403_FORBIDDEN, \
         'User should not be able to edit other users games'
 
+    client.user.is_superuser = True
+    client.user.save()
+
+    res = client.patch(other_game_url, {'description': 'test'})
+    assert res.status_code == status.HTTP_200_OK, \
+        'Unless he is a superuser'
+
 
 def test_rsvp_list(client):
     game = mixer.blend('games.Game')
@@ -225,4 +233,117 @@ def test_can_join_pickup(client):
                 'User can join any pickup game he likes'
         else:
             assert res.status_code == status.HTTP_403_FORBIDDEN, \
-                'Invining yourself to a game you can join does not make sense'
+                'Inviting yourself to a game you can join does not make sense'
+
+
+def test_rsvp_create_validation(client):
+    invalid_payloads = [
+        {'id': client.user.id, 'rsvp': 'foo'},
+        {'id': 'bar', 'rsvp': RsvpStatus.GOING},
+        {'id': client.user.id},
+        {'rsvp': RsvpStatus.GOING},  # this one in theory might be valid if
+        {},                          # we implicitly use authenticated user
+    ]
+    pickup_games = mixer.cycle(len(invalid_payloads)).blend('games.Game')
+
+    for payload, game in zip(invalid_payloads, pickup_games):
+        res = client.post(reverse('rsvp-list', (game.id, )), payload)
+        assert res.status_code == status.HTTP_400_BAD_REQUEST, \
+            'Should rise validation error'
+
+
+def test_rsvp_retreive(client):
+    rsvp = mixer.blend('games.RsvpStatus')
+    res = client.get(reverse('rsvp-detail', (rsvp.game.id, rsvp.id)))
+    assert res.status_code == status.HTTP_200_OK, \
+        'RsvpStatus can be accessed by any user'
+
+
+def test_rsvp_update_by_user(client):
+    RSVPS = [
+        RsvpStatus.REQUESTED_TO_JOIN,
+        RsvpStatus.INVITED,
+        RsvpStatus.NOT_GOING,
+        RsvpStatus.UNCERTAIN,
+        RsvpStatus.GOING,
+    ]
+
+    def valid_transactions():
+        return product(RSVPS[1:], RSVPS[2:])
+
+    def invalid_transactions():
+        return chain(
+            product(RSVPS[2:], RSVPS[:2]),
+            ((RsvpStatus.INVITED, RsvpStatus.REQUESTED_TO_JOIN), ),
+        )
+
+    pickup_rsvp = mixer.blend('games.RsvpStatus', player=client.user)
+    rsvp_url = reverse('rsvp-detail', (pickup_rsvp.game.id, pickup_rsvp.id))
+
+    for from_, to in valid_transactions():
+        pickup_rsvp.status = from_
+        pickup_rsvp.save()
+        res = client.put(rsvp_url, {'rsvp': to})
+        assert res.status_code == status.HTTP_200_OK, \
+            'Player should be able to change his status'
+
+    for from_, to in invalid_transactions():
+        pickup_rsvp.status = from_
+        pickup_rsvp.save()
+        res = client.put(rsvp_url, {'rsvp': to})
+        assert res.status_code == status.HTTP_403_FORBIDDEN, \
+            'Player should not set his status to invited or uncertain'
+
+    team = mixer.blend('teams.Team')
+    game = mixer.blend('games.Game', teams=[team])
+    team_rsvp = mixer.blend(
+        'games.RsvpStatus',
+        game=game,
+        player=client.user,
+        team=0,
+    )
+    team_rsvp_url = reverse('rsvp-detail', (team_rsvp.game.id, team_rsvp.id))
+
+    for from_, to in valid_transactions():
+        team_rsvp.status = from_
+        team_rsvp.save()
+        res = client.put(team_rsvp_url, {'rsvp': to})
+        assert res.status_code == status.HTTP_200_OK, \
+            'Player should be able to change his status'
+
+    for from_, to in invalid_transactions():
+        team_rsvp.status = from_
+        team_rsvp.save()
+        res = client.put(team_rsvp_url, {'rsvp': to})
+        assert res.status_code == status.HTTP_403_FORBIDDEN, \
+            'Player should not set his status to invited or uncertain'
+
+    other_rsvp = mixer.blend('games.RsvpStatus')
+    oher_url = reverse('rsvp-detail', (other_rsvp.game.id, other_rsvp.id))
+
+    for from_, to in product(RSVPS, RSVPS):
+        other_rsvp.status = from_
+        other_rsvp.save()
+        res = client.put(oher_url, {'rsvp': to})
+        assert res.status_code == status.HTTP_403_FORBIDDEN, \
+            'Should not be able to access any other players rsvp'
+
+
+def test_rsvp_update_validation(client):
+    invalid_payloads = [{'rsvp': 'foo'}, {}]
+
+    rsvps = mixer.cycle(len(invalid_payloads)).blend(
+        'games.RsvpStatus',
+        player=client.user,
+        status=RsvpStatus.INVITED
+    )
+
+    for payload, rsvp in zip(invalid_payloads, rsvps):
+        rsvp_url = reverse('rsvp-detail', (rsvp.game.id, rsvp.id))
+        res = client.put(rsvp_url, payload)
+        assert res.status_code == status.HTTP_400_BAD_REQUEST, \
+            'Player should be able to change his status'
+
+
+# TODO: team games
+# TODO: delete

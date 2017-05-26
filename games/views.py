@@ -130,47 +130,44 @@ class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if request.method == 'POST':
-            data = request.data
+        data = request.data
 
-            if not data:
-                return True
+        if not data:
+            return True
 
-            try:
-                new_status = int(data.get('rsvp', None))
-                new_player_id = int(data.get('id', None))
-            except (TypeError, ValueError):
-                # It will raise a validation error during serializing
-                # and produce a sensible error message so here we can give
-                # id it green light without worries
-                return True
+        try:
+            new_status = int(data.get('rsvp', None))
+            new_player_id = int(data.get('id', None))
+        except (TypeError, ValueError):
+            # It will raise a validation error during serializing
+            # and produce a sensible error message so here we can give
+            # id it green light without worries
+            return True
 
-            new_team = data.get('team', None)
-            # Only pickup games for now, No teams allowed yet
-            if new_team and new_team != RsvpStatus.NO_TEAM:
-                # TODO: Check permission to be on that team
-                pass
+        new_team = data.get('team', None)
+        # Only pickup games for now, No teams allowed yet
+        if new_team and new_team != RsvpStatus.NO_TEAM:
+            # TODO: Check permission to be on that team
+            pass
 
-            is_invite = new_status == RsvpStatus.INVITED
-            is_request = new_status == RsvpStatus.REQUESTED_TO_JOIN
-            is_rsvp = new_status is not None and new_status >= 0
+        is_invite = new_status == RsvpStatus.INVITED
+        is_request = new_status == RsvpStatus.REQUESTED_TO_JOIN
+        is_rsvp = new_status is not None and new_status >= 0
 
-            game = Game.objects.get(id=view.kwargs['game_pk'])
-            is_pickup_game = game.teams.count() == 0
-            is_team_game = not is_pickup_game
-            user = request.user
-            user_is_organizer = user == game.organizer
-            user_is_team_manager = False  # TODO:
-            user_is_player = user.id == new_player_id
+        game = Game.objects.get(id=view.kwargs['game_pk'])
+        is_pickup_game = game.teams.count() == 0
+        is_team_game = not is_pickup_game
+        user = request.user
+        user_is_organizer = user == game.organizer
+        user_is_team_manager = False  # TODO:
+        user_is_player = user.id == new_player_id
 
-            return (
-                (user_is_player and is_pickup_game and is_rsvp) or
-                (user_is_player and is_team_game and is_request) or
-                (user_is_organizer and is_pickup_game and is_invite) or
-                (user_is_team_manager and is_team_game and is_invite)
-            )
-
-        return True
+        return (
+            (user_is_player and is_pickup_game and is_rsvp) or
+            (user_is_player and is_team_game and is_request) or
+            (user_is_organizer and is_pickup_game and is_invite) or
+            (user_is_team_manager and is_team_game and is_invite)
+        )
 
     def has_object_permission(self, request, view, obj):
 
@@ -206,8 +203,11 @@ class RsvpCreateUpdateDestroyPermission(permissions.BasePermission):
 
         if not data:
             return True
+        try:
+            new_status = int(data.get('rsvp', None))
+        except ValueError:
+            return True  # Will be stopped by serializer validator
 
-        new_status = int(data.get('rsvp', None))
         old_status = obj.status
         is_rsvp = new_status is not None and new_status >= 0
 
