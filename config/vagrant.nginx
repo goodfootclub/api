@@ -1,5 +1,13 @@
 # Nginx config for the server running inside the vagrant vm
 
+{% if env == 'prod' %}
+server {
+    server_name .goodfootclub.com;
+    rewrite ^ https://goodfoot.club$request_uri? permanent;
+}
+{% endif %}
+
+
 server {
     listen 80;
     server_name {{ inventory_hostname }};
