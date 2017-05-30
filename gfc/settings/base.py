@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_filters',
     'rest_framework',
+    'rest_framework_gis',
     'social_django',
     'timezone_field',
 
