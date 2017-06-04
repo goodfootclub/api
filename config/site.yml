@@ -65,7 +65,6 @@
       - python-psycopg2
       - libsqlite3-dev
 
-
       # For Pillow (as in http://pillow.readthedocs.io/en/latest/installation.html#linux-installation)
       - libtiff5-dev
       - libjpeg8-dev
@@ -254,7 +253,7 @@
       imp="from users.models import User"
       create="User.objects.create_superuser('$USER', '$EMAIL', '$PASS')"
       cond="User.objects.filter(username='$USER').count() == 0"
-      printf "$imp;$cond and $create" | ../.env/bin/python manage.py shell
+      printf "$imp;$cond and $create" | {{ pyenv }}/bin/python manage.py shell
     args:
       chdir: '{{ srv }}/api'
     when: env == 'vagrant'
@@ -275,17 +274,21 @@
       backup: yes
     notify: update supervisor
 
+  - name: Ensure that Supervisor init.d script is in place
+    template:
+      src: supervisord.sh
+      dest: /etc/init.d/supervisord
+      backup: no
+      mode: u+x
+
+  - name: Ensure that Supervisor service is started
+    service: name=supervisord state=started enabled=yes
+
   - name: Change owner to the ssh user
     file:
       dest: '{{ srv }}'
       owner: '{{ remote_user }}'
       recurse: yes
-
-  # TODO: ensure that Supervisor starts after a reboot
-  - name: Ensure that Supervisor service is started
-    become: yes
-    become_user: '{{ remote_user }}'
-    shell: supervisord chdir={{ srv }} creates=supervisor.sock
 
   - name: Reload supervisor processes
     become: yes
