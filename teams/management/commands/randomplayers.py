@@ -57,7 +57,7 @@ class Command(BaseCommand):
             new_subs = new_members[players_wanted:]
 
             Role(player=new_players[0], team=team, role=Role.CAPTAIN).save()
-            team.managers.add(new_players[0])
+
             for player in new_players[1:]:
                 Role(player=player, team=team, role=Role.FIELD).save()
 

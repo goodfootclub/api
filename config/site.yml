@@ -281,18 +281,16 @@
       backup: no
       mode: u+x
 
-  - name: Ensure that Supervisor service is started
-    service: name=supervisord state=started enabled=yes
-
   - name: Change owner to the ssh user
     file:
       dest: '{{ srv }}'
       owner: '{{ remote_user }}'
       recurse: yes
 
+  - name: Ensure that Supervisor service is started
+    service: name=supervisord state=started enabled=yes
+
   - name: Reload supervisor processes
-    become: yes
-    become_user: '{{ remote_user }}'
     shell: supervisorctl restart all
 
   #   _  _ ____ _  _ ___  _    ____ ____ ____
@@ -304,6 +302,4 @@
     service: name=nginx state=restarted
 
   - name: update supervisor
-    become: yes
-    become_user: '{{ remote_user }}'
     command: supervisorctl update

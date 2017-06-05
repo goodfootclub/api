@@ -21,7 +21,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Description of the service"
 NAME=supervisord
 DAEMON=/usr/local/bin/supervisord
-DAEMON_ARGS="-c /etc/supervisor/supervisord.conf"
+DAEMON_ARGS="-n -c /etc/supervisor/supervisord.conf"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -47,9 +47,13 @@ do_start()
     #   0 if daemon has been started
     #   1 if daemon was already running
     #   2 if daemon could not be started
-    start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
+    start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile \
+        --background \
+        --exec $DAEMON --test > /dev/null \
         || return 1
-    start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
+    start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile \
+        --background \
+        --exec $DAEMON -- \
         $DAEMON_ARGS \
         || return 2
     # Add code here, if necessary, that waits for the process to be ready
