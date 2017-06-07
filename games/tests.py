@@ -85,14 +85,23 @@ def test_game_create():
         'Player joining a team should be invited to the future team games'
 
 
-def test_my_games(client):
+def test_my_games():
+    user = mixer.blend('users.User')
     mixer.cycle(5).blend(
         'games.RsvpStatus',
         status=RsvpStatus.GOING,
-        player=client.user
+        player=user
     )
 
+    client = APIClient()
     url = reverse('game-my')
+
+    res = client.get(url)
+    assert res.status_code == status.HTTP_401_UNAUTHORIZED, \
+        'Should not be accessable when not authenticated'
+
+    client.force_authenticate(user=user)
+
     res = client.get(url)
 
     assert res.status_code == status.HTTP_200_OK, 'Request should succeed'

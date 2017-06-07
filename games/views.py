@@ -29,7 +29,10 @@ class GameViewSet(AppViewSet):
         'create': GameCreateSerializer,
     }
     ordering_fields = ('datetime', )
-    permission_classes = (GameUpdateDestroyPermission, )
+    permission_classes = (
+        permissions.IsAuthenticated,
+        GameUpdateDestroyPermission
+    )
     search_fields = ('datetime', 'location__name', 'location__address')
 
     def get_queryset(self):
@@ -227,7 +230,10 @@ class RsvpViewSet(AppViewSet):
         'create': RsvpCreateSerializer,
     }
     queryset = RsvpStatus.objects.all()
-    permission_classes = (RsvpCreateUpdateDestroyPermission, )
+    permission_classes = (
+        permissions.IsAuthenticated,
+        RsvpCreateUpdateDestroyPermission,
+    )
 
     def get_queryset(self):
         return super().get_queryset().filter(game_id=self.kwargs['game_pk'])
