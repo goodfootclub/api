@@ -56,8 +56,10 @@
       - postgresql
       - postgresql-contrib
       - libpq-dev
-      # Nginx
+
+      # DB
       - nginx
+      - redis-server
 
       # Python (python 3.6 installed separately)
       - python-dev
@@ -81,6 +83,7 @@
       - gdal-bin
       - postgis
       - postgresql-9.3-postgis-2.1
+
 
   - name: Ensure that Python 3.6 is present (may take a while)
     shell: |

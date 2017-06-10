@@ -1,4 +1,5 @@
 git+git://github.com/mverteuil/pytest-ipdb.git#egg=pytest-ipdb
+celery[redis]==4.0.2
 django-crispy-forms==1.6.1
 django-filter==1.0.2
 django-timezone-field==2.0
