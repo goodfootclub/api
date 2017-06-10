@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.contrib.gis.db import models
+from django.db.models import F, When, Case, Max
 
 from teams.models import Team
 
@@ -23,6 +24,42 @@ class Location(models.Model):
 
     class Meta:
         unique_together = ('address', 'name')
+
+
+class GameQuerySet(models.QuerySet):
+    """Support "future" games query filter"""
+
+    def get_cuttoff_time(self):
+        """
+        More often then not we don't care about games in the past. This
+        method returns datetime to use in a query with datetime__gt filter
+        """
+        return datetime.utcnow() - timedelta(minutes=90)
+
+    def future(self):
+        return self.filter(datetime__gt=self.get_cuttoff_time())
+
+    def with_rsvps(self, player):
+        """Annotate the query with RsvpStatus values for a player"""
+        return self.annotate(
+            rsvp=Max(Case(
+                When(rsvps__player=player, then=F('rsvps__status'))
+            )),
+            rsvp_id=Max(Case(
+                When(rsvps__player=player, then=F('rsvps__id')),
+            )),
+        )
+
+
+class GameManager(models.Manager):
+    def get_queryset(self):
+        return GameQuerySet(self.model, using=self.db)
+
+    def future(self):
+        return self.get_queryset().future()
+
+    def with_rsvps(self):
+        return self.get_queryset().future()
 
 
 class Game(models.Model):
@@ -53,28 +90,11 @@ class Game(models.Model):
     class Meta:
         ordering = ['datetime']
 
+    objects = GameManager()
+
     @staticmethod
     def get_cuttoff_time():
-        """
-        More often then not we don't care about games in the past. This
-        method returns datetime to use in a query with datetime__gt filter
-        """
         return datetime.utcnow() - timedelta(minutes=90)
-
-    class GameQuerySet(models.QuerySet):
-        """Support "future" games query filter"""
-        def future(self):
-            return self.filter(datetime__gt=Game.get_cuttoff_time())
-
-    class GameManager(models.Manager):
-        """Support "future" games query filter"""
-        def get_queryset(self):
-            return Game.GameQuerySet(self.model, using=self.db)
-
-        def future(self):
-            return self.get_queryset().future()
-
-    objects = GameManager()
 
 
 class RsvpStatus(models.Model):

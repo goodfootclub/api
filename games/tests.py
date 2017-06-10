@@ -19,6 +19,23 @@ def test_game_model():
     assert str(game) != '', 'Should cover __str__'
 
 
+def test_rsvps_annotation():
+    user = mixer.blend('users.User')
+    game = mixer.blend('games.Game')
+    RsvpStatus(player=user, game=game, status=RsvpStatus.GOING).save()
+    RsvpStatus(player=mixer.blend('users.User'),
+               game=game, status=RsvpStatus.GOING).save()
+
+    annotated_game = Game.objects.all().with_rsvps(user)[0]
+    assert annotated_game.rsvp == RsvpStatus.GOING
+
+    client = APIClient()
+    client.force_authenticate(user)
+
+    res = client.get(reverse('game-list'))
+    assert res.data['results'][0]['rsvp'] == RsvpStatus.GOING
+
+
 def test_game_queryset_and_manager():
     old = mixer.blend('games.Game', datetime=datetime.utcnow() - timedelta(1))
     new = mixer.blend('games.Game', datetime=datetime.utcnow() + timedelta(1))

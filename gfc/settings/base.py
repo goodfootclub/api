@@ -26,6 +26,7 @@ SECRET_KEY = 'r2s57nn3yg8%=h@xwtpy!9k%2opkw&v=3lm=yh9voetblt#v!b'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+TEMPLATE_DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -189,6 +190,11 @@ LOGGING = {
             'handlers': ['django-debug.log'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        'django.template': {
+            'handlers': ['django-debug.log'],
+            'level': 'INFO',
+            'propagate': False,
         },
         'app': {
             'handlers': ['app-debug.log'],

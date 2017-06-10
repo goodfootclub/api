@@ -20,7 +20,10 @@ class GameViewSet(AppViewSet):
     """
     Root viewset for games api, also included in teams/{id}/games api
     """
-    queryset = Game.objects.all()
+    queryset = Game.objects.all()\
+        .select_related('location')\
+        .prefetch_related('teams')
+
     serializer_class = GameDetailsSerializer
     serializer_classes = {
         'list': GameListSerializer,
@@ -54,6 +57,8 @@ class GameViewSet(AppViewSet):
         if self.action != 'list':
             return queryset
 
+        queryset = queryset.with_rsvps(self.request.user)
+
         if 'team_pk' in self.kwargs:
             # Team games for a specific team
             queryset = queryset.filter(teams__in=[self.kwargs['team_pk']])
@@ -62,7 +67,7 @@ class GameViewSet(AppViewSet):
             queryset = queryset.filter(teams=None)
 
         if 'all' not in self.request.query_params:
-            return queryset.filter(datetime__gt=Game.get_cuttoff_time())
+            return queryset.future()
 
         return queryset
 

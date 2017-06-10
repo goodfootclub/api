@@ -36,6 +36,10 @@ class GameListSerializer(ModelSerializer):
     def to_representation(self, game):
         data = super().to_representation(game)
 
+        if getattr(game, 'rsvp', None) is not None:
+            data['rsvp'] = game.rsvp
+            data['rsvp_id'] = game.rsvp_id
+
         request = self.context.get('request', None)
         if request and request.accepted_renderer.format == 'api':
             data['url'] = reverse('game-detail', (game.id, ),
