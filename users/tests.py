@@ -7,6 +7,8 @@ from rest_framework.test import APIClient
 from games.models import RsvpStatus
 from teams.models import Role
 
+from .pipeline import facebook_extra_details
+
 pytestmark = pytest.mark.django_db
 
 
@@ -51,3 +53,38 @@ def test_user_has_game_invites():
         'teams': 1,
         'games': 1,
     }, 'Sould have two invites total, one game and one team invites'
+
+
+def test_facebook_pipeline(mocker):
+    # FIXME: work in progress
+    class MockResponse():
+        def __init__(self, data):
+            self.data = data
+
+        def json(self):
+            return self.data
+
+    def get_mock(*args, **kwargs):
+        return MockResponse({})
+
+    requests_get = mocker.patch('requests.get', side_effect=get_mock)
+
+    class NoImage:
+        name = None
+
+    class MockUser:
+        email = 'mail@example.com'
+        birthday = None
+        img = NoImage()
+        cover = NoImage()
+
+        def save(self):
+            pass
+
+    class MockBackEnd:
+        name = 'facebook'
+
+    class MockSocial:
+        extra_data = {'access_token': 'foobar'}
+
+    facebook_extra_details(MockBackEnd(), MockUser(), social=MockSocial())

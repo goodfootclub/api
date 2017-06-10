@@ -75,6 +75,7 @@ class GameViewSet(AppViewSet):
         """
         Queryset for `my` and `invites` action
         """
+        # TODO: refactor to use Game with_rsvps instead
         queryset = RsvpStatus.objects.filter(player=self.request.user)
 
         if invites:

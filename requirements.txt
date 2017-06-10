@@ -15,6 +15,7 @@ Pillow==3.4.2
 psycopg2==2.6.2
 pytest-cov==2.4.0
 pytest-django==3.1.2
+pytest-mock==1.6.0
 pytest-testmon==0.9.4
 pytest-watch==4.1.0
 pytest==2.9.2
