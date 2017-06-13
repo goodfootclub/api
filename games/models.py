@@ -136,6 +136,6 @@ class RsvpStatus(models.Model):
 
     class Meta:
         unique_together = 'player', 'game'
-        ordering = ['game__datetime']
+        ordering = ['game__datetime', '-status']
         verbose_name = 'RSVP status'
         verbose_name_plural = 'RSVP statuses'
