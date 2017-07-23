@@ -2,6 +2,7 @@ from django.db.transaction import atomic
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 from rest_framework.serializers import (
+    CharField,
     DateTimeField,
     ListField,
     PrimaryKeyRelatedField,
@@ -31,7 +32,7 @@ class GameListSerializer(ModelSerializer):
 
     class Meta:
         model = Game
-        fields = 'id', 'teams', 'datetime', 'location'
+        fields = 'id', 'teams', 'datetime', 'location', 'name'
 
     def to_representation(self, game):
         data = super().to_representation(game)
@@ -73,10 +74,11 @@ class GameCreateSerializer(ModelSerializer):
         required=False,
         write_only=True,
     )
+    name = CharField(help_text='(optional) game name', required=False)
 
     class Meta:
         model = Game
-        fields = 'id', 'teams', 'datetime', 'datetimes', 'location'
+        fields = 'id', 'teams', 'name', 'datetime', 'datetimes', 'location',
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -224,21 +226,18 @@ class GameSerializer_(ModelSerializer):
 
 class GameSerializer(ModelSerializer):
 
-    players = RsvpSerializer(source='rsvps', many=True)
+    players = RsvpSerializer(source='rsvps', many=True, read_only=True)
 
     class Meta:
         model = Game
         fields = '__all__'
 
-    def to_internal_value(self, data):
-        # Rsvps are managed with a separate view
-        data.pop('players', None)
-        return data
-
 
 class GameDetailsSerializer(GameSerializer):
 
-    players = RsvpSerializer(source='rsvps', many=True)
-    organizer = PlayerListSerializer()
-    teams = TeamListSerializer(many=True)
-    location = LocationSerializer()
+    organizer = PlayerListSerializer(read_only=True)
+    teams = TeamListSerializer(many=True, read_only=True)
+    location = LocationSerializer(read_only=True)
+
+    class Meta(GameSerializer.Meta):
+        read_only_fields = 'players', 'organizer', 'teams'

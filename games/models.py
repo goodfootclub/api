@@ -71,6 +71,7 @@ class Game(models.Model):
         description? (String) - notes, reminders, etc...
         duration? (Int) - number in minutes
         location (FK) - Location, place where a game will take place
+        name? (String) - Optional name for a game
         organizer? (FK) - User, creator of an event
         teams? (MtM) - 0, 1 or 2 teams (pickup games have no teams)
     """
@@ -79,6 +80,7 @@ class Game(models.Model):
     description = models.CharField(blank=True, max_length=255, default='')
     duration = models.IntegerField(null=True)
     location = models.ForeignKey(Location, related_name='games')
+    name = models.CharField(null=True, max_length=255)
     organizer = models.ForeignKey('users.User', related_name='games_created')
     teams = models.ManyToManyField(Team, related_name='games')
     players = models.ManyToManyField('users.User', related_name='games',
