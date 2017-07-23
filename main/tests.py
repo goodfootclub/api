@@ -22,6 +22,7 @@ mixer.register(
 mixer.register(
     'games.Game',
     datetime=timezone.now() + timedelta(randint(1, 500)),
+    name=None,
 )
 
 
