@@ -224,14 +224,6 @@ LOGGING = {
     },
 }
 
-RAVEN_CONFIG = {
-    'dsn':
-        'https://414e5d642b304b019e2638cd0e2d3db1:e0943ce5eefa492fa68222'
-        '64ae73746a@sentry.io/201630',
-    'release': raven.fetch_git_sha(APP_DIR),
-}
-
-
 # Emails
 
 EMAIL_SUBJECT_PREFIX = '[Good Foot Club (DEVELOPMENT)] '
