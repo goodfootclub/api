@@ -24,4 +24,5 @@ pytest-watch==4.1.0
 pytest==2.9.2
 python-dateutil==2.6.0
 pytz==2017.2
+raven==6.1.0
 social-auth-app-django==1.1.0
