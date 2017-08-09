@@ -1,11 +1,13 @@
 git+git://github.com/mverteuil/pytest-ipdb.git#egg=pytest-ipdb
 celery[redis]==4.0.2
+coreapi==2.3.1
 django-crispy-forms==1.6.1
 django-filter==1.0.2
+django-rest-swagger==2.1.2
 django-timezone-field==2.0
 Django==1.11.3
-djangorestframework-jwt==1.10.0
 djangorestframework-gis==0.11.2
+djangorestframework-jwt==1.10.0
 djangorestframework==3.6.3
 drf-nested-routers==0.11.1
 ipdb==0.10.3
@@ -21,5 +23,5 @@ pytest-testmon==0.9.4
 pytest-watch==4.1.0
 pytest==2.9.2
 python-dateutil==2.6.0
-social-auth-app-django==1.1.0
 pytz==2017.2
+social-auth-app-django==1.1.0

@@ -5,16 +5,16 @@ from rest_framework.serializers import (
     CharField,
     DateTimeField,
     ListField,
-    PrimaryKeyRelatedField,
     ModelSerializer,
+    PrimaryKeyRelatedField,
 )
 
-from teams.views import TeamListSerializer, Team
+from teams.views import Team, TeamListSerializer
 from users.serializers.players import PlayerListSerializer
+
+from ..models import Game, Location, RsvpStatus
 from .locations import LocationSerializer
 from .rsvps import *
-from ..models import Game, Location, RsvpStatus
-
 
 __all__ = [
     'GameCreateSerializer',
