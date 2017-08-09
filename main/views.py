@@ -50,4 +50,4 @@ class ApiError(APIView):
     """
 
     def get(self, request, format=None):
-        raise APIException("Test error, please ignore...")
+        raise Exception("Test error, please ignore...")
