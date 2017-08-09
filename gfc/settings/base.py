@@ -172,10 +172,16 @@ MEDIA_ROOT = join_path(SRV_DIR, 'media')
 
 
 # Logging
+ADMINS = [('Admin', 'admin@goodfoot.club')]
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
     'handlers': {
         'django-debug.log': {
             'level': 'DEBUG',
@@ -186,6 +192,12 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': join_path(SRV_DIR, 'logs', 'app-debug.log'),
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
         },
     },
     'loggers': {
@@ -198,6 +210,11 @@ LOGGING = {
             'handlers': ['django-debug.log'],
             'level': 'INFO',
             'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
         },
         'app': {
             'handlers': ['app-debug.log'],
