@@ -9,9 +9,10 @@ https://docs.djangoproject.com/en/1.10/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
-
 from os.path import abspath, dirname, join as join_path
 from datetime import timedelta
+
+import raven
 
 # Build paths inside the project like this: join_path(BASE_DIR, ...)
 APP_DIR = dirname(dirname(dirname(abspath(__file__))))
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     # 3rd party
     'crispy_forms',
     'django_filters',
+    'raven.contrib.django.raven_compat',
     'rest_framework',
     'rest_framework_gis',
     'rest_framework_swagger',
@@ -205,12 +207,22 @@ LOGGING = {
     },
 }
 
+RAVEN_CONFIG = {
+    'dsn':
+        'https://414e5d642b304b019e2638cd0e2d3db1:e0943ce5eefa492fa68222'
+        '64ae73746a@sentry.io/201630',
+    'release': raven.fetch_git_sha(APP_DIR),
+}
+
+
 # Emails
 
 EMAIL_SUBJECT_PREFIX = '[Good Foot Club (DEVELOPMENT)] '
 
 
 # ReST framework
+
+API_TITLE = 'Good Foot Club API'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -232,6 +244,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
 
-API_TITLE = 'Good Foot Club API'
+# Celery
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
