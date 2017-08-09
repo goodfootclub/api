@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework_gis',
+    'rest_framework_swagger',
     'social_django',
     'timezone_field',
 
@@ -232,3 +233,5 @@ REST_FRAMEWORK = {
 }
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+API_TITLE = 'Good Foot Club API'
