@@ -35,13 +35,21 @@ class Command(BaseCommand):
             help='Number of random games desired in the system '
                  '(Default {}).'.format(DEFAULT_COUNT),
         )
+        parser.add_argument(
+            '-f', '--force',
+            action='store_true',
+            dest='force',
+            default=False,
+            help='Force (re)creationg of games',
+        )
 
     def handle(self, *args, **options):
         count = options['count']
+        force = options['force']
 
         games = Game.objects.filter(description__startswith=DESC_PREFIX)
         if (
-            games.count() >= count > 0 and
+            not force and games.count() >= count > 0 and
             games.first().description.startswith(VERSIONED_PREFIX)
         ):
             self.stdout.write('Already enough games in the system')
