@@ -26,7 +26,7 @@ def test_rsvps_annotation():
     RsvpStatus(player=mixer.blend('users.User'),
                game=game, status=RsvpStatus.GOING).save()
 
-    annotated_game = Game.objects.all().with_rsvps(user)[0]
+    annotated_game = Game.objects.with_rsvps(user)[0]
     assert annotated_game.rsvp == RsvpStatus.GOING
 
     client = APIClient()

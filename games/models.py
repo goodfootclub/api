@@ -58,8 +58,8 @@ class GameManager(models.Manager):
     def future(self):
         return self.get_queryset().future()
 
-    def with_rsvps(self):
-        return self.get_queryset().future()
+    def with_rsvps(self, player):
+        return self.get_queryset().future().with_rsvps(player)
 
 
 class Game(models.Model):
