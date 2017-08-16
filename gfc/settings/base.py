@@ -113,7 +113,7 @@ AUTH_USER_MODEL = 'users.User'
 
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.facebook.FacebookOAuth2',
-    'django.contrib.auth.backends.ModelBackend',
+    'users.backends.EmailOrUsernameAuthBackend',
 )
 
 SOCIAL_AUTH_FACEBOOK_KEY = '1813792338896743'
@@ -146,6 +146,10 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': timedelta(days=60),
     'JWT_ALLOW_REFRESH': True,
 }
+
+LOGIN_REDIRECT_URL = '/api/'
+LOGIN_URL = 'rest_framework:login'
+LOGOUT_URL = 'rest_framework:logout'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
