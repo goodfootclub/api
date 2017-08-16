@@ -30,6 +30,7 @@ class User(AbstractUser):
     bio = models.TextField(null=True, blank=True, max_length=1000)
     birthday = models.DateField(null=True)
     cover = models.ImageField(null=True)
+    email = models.EmailField(blank=True, unique=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True)
     img = models.ImageField(null=True)
     phone = models.CharField(max_length=12, null=True, blank=True)
