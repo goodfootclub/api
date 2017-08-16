@@ -22,18 +22,16 @@ from rest_framework_jwt.views import (
 )
 
 
-urlpatterns = [url(
-    r'^admin/', admin.site.urls
-), url(
-    r'^api/auth/jwt/$', obtain_jwt_token
-), url(
-    r'^api/auth/jwt/refresh/$', refresh_jwt_token
-), url(
-    r'^api/auth/jwt/verify/$', verify_jwt_token
-), url(
-    r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')
-), url(
-    r'^auth/', include('social_django.urls', namespace='social')
-), url(
-    r'^api/', include('main.urls')
-)]
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^api/auth/jwt/$', obtain_jwt_token),
+    url(r'^api/auth/jwt/refresh/$', refresh_jwt_token),
+    url(r'^api/auth/jwt/verify/$', verify_jwt_token),
+    url(
+        r'^api/auth/',
+        include('rest_framework.urls', namespace='rest_framework')
+    ),
+    url(r'^auth/', include('social_django.urls', namespace='social')),
+    url(r'^django-auth/', include('django.contrib.auth.urls')),
+    url(r'^api/', include('main.urls'))
+]
