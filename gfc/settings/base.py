@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # 3rd party
     'crispy_forms',
     'django_filters',
+    'djoser',
     'raven.contrib.django.raven_compat',
     'rest_framework',
     'rest_framework_gis',
@@ -115,6 +116,15 @@ AUTHENTICATION_BACKENDS = (
     'social_core.backends.facebook.FacebookOAuth2',
     'users.backends.EmailOrUsernameAuthBackend',
 )
+
+DJOSER = {
+    'PASSWORD_RESET_CONFIRM_URL':
+        'api/auth/password/reset/confirm/?uid={uid}&token={token}',
+    'ACTIVATION_URL': 'api/auth/activate/?uid={uid}&token={token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'SERIALIZERS': {},
+}
+
 
 SOCIAL_AUTH_FACEBOOK_KEY = '1813792338896743'
 SOCIAL_AUTH_FACEBOOK_SECRET = '531c95442b081266a13ccbac73935a0a'
@@ -232,6 +242,10 @@ LOGGING = {
 
 EMAIL_SUBJECT_PREFIX = '[Good Foot Club (DEVELOPMENT)] '
 
+EMAIL_HOST = 'localhost'
+EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = ''
+EMAIL_PORT = 1025
 
 # ReST framework
 
