@@ -13,20 +13,35 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 from django.contrib import admin
+
+from djoser.views import (
+    ActivationView,
+    PasswordResetConfirmView,
+    PasswordResetView,
+    RegistrationView,
+
+)
 from rest_framework_jwt.views import (
     obtain_jwt_token,
     refresh_jwt_token,
     verify_jwt_token,
 )
 
-
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/auth/jwt/$', obtain_jwt_token),
     url(r'^api/auth/jwt/refresh/$', refresh_jwt_token),
     url(r'^api/auth/jwt/verify/$', verify_jwt_token),
+
+    url(r'^api/auth/register', RegistrationView.as_view()),
+    url(r'^api/auth/activate', ActivationView.as_view()),
+    url(r'^api/auth/password/reset', PasswordResetView.as_view()),
+    url(
+        r'^api/auth/password/reset/confirm',
+        PasswordResetConfirmView.as_view()
+    ),
     url(
         r'^api/auth/',
         include('rest_framework.urls', namespace='rest_framework')
