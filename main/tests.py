@@ -26,6 +26,17 @@ mixer.register(
 )
 
 
+def get_email(_email_counter=[0]):
+    _email_counter[0] += 1
+    return f'email{_email_counter[0]}@example.com'
+
+
+mixer.register(
+    'users.User',
+    email=get_email,
+)
+
+
 @pytest.fixture
 def client():
     """Authenticated client fixture"""
