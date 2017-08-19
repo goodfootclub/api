@@ -53,7 +53,7 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         self.email = self.email.lower().strip()
 
-        if self.email != "" and User.objects.filter(email=self.email).count():
-            raise ValueError(f'The email {self.email} is already in use')
-
+        if self.email != '' and User.objects.filter(email=self.email).count():
+            # f'The email {self.email} is already in use. Will be set to blank'
+            self.email = ''
         return super().save(*args, **kwargs)
