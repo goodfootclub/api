@@ -194,6 +194,7 @@ def test_game_edit_permission(client):
     assert res.status_code == status.HTTP_403_FORBIDDEN, \
         'User should not be able to edit other users games'
 
+    client.user.email = 'admin@example.com'
     client.user.is_superuser = True
     client.user.save()
 
