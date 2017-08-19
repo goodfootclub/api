@@ -55,5 +55,6 @@ class User(AbstractUser):
 
         if self.email != '' and User.objects.filter(email=self.email).count():
             # f'The email {self.email} is already in use. Will be set to blank'
-            self.email = ''
+            # self.email = ''
+            pass  # TODO:
         return super().save(*args, **kwargs)
