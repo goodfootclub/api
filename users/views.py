@@ -3,11 +3,10 @@
 CurrentUser (api/users/current) - shows info about logged in user or 401s.
 """
 from rest_framework.generics import (
-    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
     ListAPIView,
     RetrieveAPIView,
 )
-
 from .models import User
 from .serializers import (
     CurrentUserSerializer,
@@ -16,13 +15,18 @@ from .serializers import (
 )
 
 
-class CurrentUser(RetrieveUpdateAPIView):
-    """Information about currently logged in user.
+class CurrentUser(RetrieveUpdateDestroyAPIView):
+    """
+    Information about currently logged in user.
     """
     serializer_class = CurrentUserSerializer
 
     def get_object(self):
         return self.request.user
+
+    def perform_destroy(self, instance: User):
+        instance.is_active = False
+        instance.save()
 
 
 class PlayerList(ListAPIView):

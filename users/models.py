@@ -64,9 +64,8 @@ class User(AbstractUser):
                 same_email_count -= 1
 
             if same_email_count > 0:
-                raise ValidationError(
-                    f'The email {self.email} is already in use',
-                    code=HTTP_409_CONFLICT,
-                )
+                raise ValidationError({
+                    'email': ['A user with that email already exists.'],
+                }, code=HTTP_409_CONFLICT)
 
         return super().save(*args, **kwargs)

@@ -1,5 +1,5 @@
 import pytest
-from main.tests import mixer
+from main.tests import mixer, client
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
@@ -19,17 +19,13 @@ def test_user_creation():
     assert user.username == 'John', 'User should have a username'
 
 
-def test_current_user_view():
-    user = mixer.blend('users.User')
-    client = APIClient()
-    client.force_authenticate(user=user)
-
+def test_current_user_view(client):
     res = client.get(reverse('current-user'))
 
     assert res.status_code == status.HTTP_200_OK, \
         'Current user request should succeed when user is authenticated'
 
-    assert res.data['id'] == user.id, \
+    assert res.data['id'] == client.user.id, \
         'users/me should return data info about the logged in user'
 
 
@@ -38,9 +34,7 @@ def test_user_has_game_invites():
     rsvp = mixer.blend(
         'games.RsvpStatus', player=user, status=RsvpStatus.INVITED
     )
-    role = mixer.blend(
-        'teams.Role', player=user, status=Role.INVITED
-    )
+    role = mixer.blend('teams.Role', player=user, status=Role.INVITED)
 
     client = APIClient()
     client.force_authenticate(user=user)
@@ -49,11 +43,8 @@ def test_user_has_game_invites():
 
     assert 'invites' in res.data, 'Sould have invites'
 
-    assert res.data['invites'] == {
-        'total': 2,
-        'teams': 1,
-        'games': 1,
-    }, 'Sould have two invites total, one game and one team invites'
+    assert res.data['invites'] == {'total': 2, 'teams': 1, 'games': 1}, \
+        'Sould have two invites total, one for games and one for teams'
 
 
 def test_facebook_pipeline(mocker):
@@ -97,3 +88,23 @@ def test_email_blank_or_unique():
         eve = mixer.blend('users.User', email='alice@example.com')
 
     mixer.cycle(2).blend('users.User', email='')
+
+
+def test_account_delete():
+    user = mixer.blend('users.User')
+    user.set_password('1234')
+    user.save()
+    client = APIClient()
+    client.login(username=user.username, password='1234')
+
+    res = client.delete(reverse('current-user'))
+
+    assert res.status_code == status.HTTP_204_NO_CONTENT, \
+        'Current user should be able to delete his account'
+
+    user.refresh_from_db()
+    assert user.is_active is False, 'Must be a soft delete'
+
+    res = client.get(reverse('current-user'))
+    assert res.status_code == status.HTTP_401_UNAUTHORIZED, \
+        'Should log user out'
