@@ -1,6 +1,7 @@
 import pytest
 from main.tests import mixer
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
@@ -56,7 +57,6 @@ def test_user_has_game_invites():
 
 
 def test_facebook_pipeline(mocker):
-    # FIXME: work in progress
     class MockResponse():
         def __init__(self, data):
             self.data = data
@@ -88,3 +88,12 @@ def test_facebook_pipeline(mocker):
         extra_data = {'access_token': 'foobar'}
 
     facebook_extra_details(MockBackEnd(), MockUser(), social=MockSocial())
+
+
+def test_email_blank_or_unique():
+    alice = mixer.blend('users.User', email='alice@example.com')
+
+    with pytest.raises(ValidationError):
+        eve = mixer.blend('users.User', email='alice@example.com')
+
+    mixer.cycle(2).blend('users.User', email='')

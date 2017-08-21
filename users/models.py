@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from timezone_field import TimeZoneField
+from rest_framework.exceptions import ValidationError
+from rest_framework.status import HTTP_409_CONFLICT
 
 from games.models import RsvpStatus
 from teams.models import Role
@@ -18,6 +20,8 @@ class User(AbstractUser):
         phone (String) - phone number
         profile_complete (Bool) - profile is complete flag
         timezone (Timezone) - users timezone
+
+    Also, the email should be blank or unique
     """
     FEMALE = 'F'
     MALE = 'M'
@@ -53,8 +57,16 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         self.email = self.email.lower().strip()
 
-        if self.email != '' and User.objects.filter(email=self.email).count():
-            # f'The email {self.email} is already in use. Will be set to blank'
-            # self.email = ''
-            pass  # TODO:
+        if self.email != '':
+            same_email_count = User.objects.filter(email=self.email).count()
+
+            if self.id:
+                same_email_count -= 1
+
+            if same_email_count > 0:
+                raise ValidationError(
+                    f'The email {self.email} is already in use',
+                    code=HTTP_409_CONFLICT,
+                )
+
         return super().save(*args, **kwargs)
