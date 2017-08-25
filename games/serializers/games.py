@@ -1,3 +1,4 @@
+import coreschema
 from django.db.transaction import atomic
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
@@ -27,12 +28,16 @@ __all__ = [
 
 
 class GameListSerializer(ModelSerializer):
-    teams = TeamListSerializer(many=True, required=False)
+    """
+    Simplified game representation for use in list APIs (read only)
+    """
+    teams = TeamListSerializer(many=True)
     location = LocationSerializer()
 
     class Meta:
         model = Game
         fields = 'id', 'teams', 'datetime', 'location', 'name'
+        read_only_fields = fields
 
     def to_representation(self, game):
         data = super().to_representation(game)
@@ -48,37 +53,46 @@ class GameListSerializer(ModelSerializer):
         return data
 
 
-class MyGameListSerializer(GameListSerializer):
-    """
-    This takes an *RsvpStatus* object instead of a Game object, but only
-    uses status from it, rest of the fields are for respective .game
-    """
-
-    def to_representation(self, rsvp: RsvpStatus):
-        data = super().to_representation(rsvp.game)
-        data['rsvp'] = rsvp.status
-        data['rsvp_id'] = rsvp.id
-        data['team'] = rsvp.team
-        return data
-
-
 class GameCreateSerializer(ModelSerializer):
-    teams = PrimaryKeyRelatedField(many=True, required=False,
-                                   queryset=Team.objects.all())
+
+    teams = PrimaryKeyRelatedField(
+        many=True,
+        required=False,
+        queryset=Team.objects.all(),
+    )
     location = LocationSerializer(validators=[])
     datetime = DateTimeField(required=False)
     datetimes = ListField(
         child=DateTimeField(),
-        help_text='(optional) extra datetimes, will automatically create '
-                  'more games',
+        help_text='extra datetimes, will automatically create more games',
         required=False,
         write_only=True,
     )
-    name = CharField(help_text='(optional) game name', required=False)
+    name = CharField(help_text='game name', required=False)
 
     class Meta:
         model = Game
         fields = 'id', 'teams', 'name', 'datetime', 'datetimes', 'location',
+
+    def is_valid(self, *args, **kwargs):
+        # Work around an issue with browsable api where empty input value
+        # becomes [''] for a list field
+        if self.initial_data.get('datetimes', None) == '':
+            self.initial_data._mutable = True
+            self.initial_data.pop('datetimes')
+        return super().is_valid(*args, **kwargs)
+
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+
+        self_fields = self.fields
+        request = self.context.get('request', None)
+
+        if request:
+            teams = fields['teams'].child_relation
+            teams.queryset = request.user.managed_teams
+
+        return fields
 
     def to_representation(self, obj):
         data = super().to_representation(obj)
@@ -92,7 +106,7 @@ class GameCreateSerializer(ModelSerializer):
     @atomic
     def create(self, validated_data):
         location_data = validated_data['location']
-        teams = validated_data['teams']
+        teams = validated_data.get('teams', [])
         request = self.context.get('request', None)
         datetimes = []
 
@@ -123,11 +137,14 @@ class GameCreateSerializer(ModelSerializer):
 
         # FIXME: *SLAM* There must be a better way!
         games = []
-        for dt in datetimes:
+        game_name = validated_data.get('name', '')
+        for i, dt in enumerate(datetimes):
+            name_suffix = f' ({i + 1})' if i > 0 and game_name else ''
             game = Game.objects.create(
                 datetime=dt,
                 location=location_obj,
                 organizer=request.user,
+                name=game_name + name_suffix,
             )
             game.teams.add(*teams)
 
@@ -153,6 +170,23 @@ class GameCreateSerializer(ModelSerializer):
             games.append(game)
 
         return games[0]
+
+
+# ------------------------------------------
+
+
+class MyGameListSerializer(GameListSerializer):
+    """
+    This takes an *RsvpStatus* object instead of a Game object, but only
+    uses status from it, rest of the fields are for respective .game
+    """
+
+    def to_representation(self, rsvp: RsvpStatus):
+        data = super().to_representation(rsvp.game)
+        data['rsvp'] = rsvp.status
+        data['rsvp_id'] = rsvp.id
+        data['team'] = rsvp.team
+        return data
 
 
 class GameSerializer_(ModelSerializer):

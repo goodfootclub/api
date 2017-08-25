@@ -31,7 +31,8 @@ class Team(models.Model):
     )
 
     info = models.CharField(max_length=1000, null=True, blank=True)
-    managers = models.ManyToManyField('users.User', related_name='managed_teams')
+    managers = models.ManyToManyField('users.User',
+                                      related_name='managed_teams')
     name = models.CharField(max_length=30)
     players = models.ManyToManyField('users.User', related_name='teams',
                                      through='Role')

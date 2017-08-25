@@ -18,7 +18,22 @@ from .serializers import (
 
 class GameViewSet(AppViewSet):
     """
-    Root viewset for games api, also included in teams/{id}/games api
+    # Games Api
+
+    Root viewset for api/games, also included in api/teams/{id}/games/
+
+
+    list:
+
+    Get a list of upcoming pickup games\n
+    Can be searched by name, date, location name, location address.\n
+    Can be ordered by `datetime` (default) and `-datetime`.
+
+
+    create:
+
+    Create a game. You can create many copies at different dates at once
+    by specifying multiple dates in `datetimes` property
     """
     queryset = Game.objects.all()\
         .select_related('location')\
@@ -27,9 +42,9 @@ class GameViewSet(AppViewSet):
     serializer_class = GameDetailsSerializer
     serializer_classes = {
         'list': GameListSerializer,
-        'my': MyGameListSerializer,
-        'invites': MyGameListSerializer,
         'create': GameCreateSerializer,
+        'invites': MyGameListSerializer,
+        'my': MyGameListSerializer,
     }
     ordering_fields = ('datetime', )
     permission_classes = (
@@ -95,19 +110,19 @@ class GameViewSet(AppViewSet):
 
     @list_route(methods=['get'])
     def invites(self, *args, **kwargs):
-        """Game invites"""
+        """Pending game invites for the logged-in user"""
         return super().list(*args, **kwargs)
 
-    def list(self, *args, **kwargs):
-        """
-        # My Games
-        Games for the logged-in user are available at
-        [/api/games/my/](/api/games/my/)
+    # def list(self, *args, **kwargs):
+    #     """
+    #     # My Games mnbvnbv
+    #     Games for the logged-in user are available at
+    #     [/api/games/my/](/api/games/my/)
 
-        # Pending invites
-        Invites are available at [/api/games/invites/](/api/games/invites/)
-        """
-        return super().list(*args, **kwargs)
+    #     # Pending invites
+    #     Invites are available at [/api/games/invites/](/api/games/invites/)
+    #     """
+    #     return super().list(*args, **kwargs)
 
     def retrieve(self, *args, **kwargs):
         """

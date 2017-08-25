@@ -80,7 +80,7 @@ class Game(models.Model):
     description = models.CharField(blank=True, max_length=255, default='')
     duration = models.IntegerField(null=True)
     location = models.ForeignKey(Location, related_name='games')
-    name = models.CharField(null=True, max_length=255)
+    name = models.CharField(blank=True, max_length=255, default='')
     organizer = models.ForeignKey('users.User', related_name='games_created')
     teams = models.ManyToManyField(Team, related_name='games')
     players = models.ManyToManyField('users.User', related_name='games',

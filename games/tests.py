@@ -371,5 +371,33 @@ def test_rsvp_update_validation(client):
             'Player should be able to change his status'
 
 
+def test_game_name(client):
+    address = mixer.faker.address()
+    location_name = ' '.join(address.split()[1:3])
+
+    game_name = f'The game at {location_name}'
+
+    res = client.post(reverse('game-list'), {
+        'datetimes': [datetime.utcnow() + timedelta(i) for i in range(1, 5)],
+        'location': {
+            'address': address,
+            'name': location_name,
+        },
+        'name': game_name,
+    })
+
+    game = Game.objects.get(id=res.data['id'])
+
+    assert game.name == game_name, 'Should be able to create game with a name'
+
+    games = Game.objects.filter(name__startswith=game_name)
+    names = [item['name'] for item in games.values('name')]
+    assert names == [
+        game_name,
+        game_name + ' (2)',
+        game_name + ' (3)',
+        game_name + ' (4)',
+    ], 'Games created at once with a name should get a (n) suffix'
+
 # TODO: team games
 # TODO: delete
