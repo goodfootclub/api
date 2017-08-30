@@ -8,7 +8,6 @@ from .serializers import (
     GameCreateSerializer,
     GameDetailsSerializer,
     GameListSerializer,
-    GameSerializer,
     LocationSerializer,
     RsvpCreateSerializer,
     RsvpSerializer,
@@ -93,23 +92,6 @@ class GameViewSet(AppViewSet):
             return queryset
 
         return queryset.future()
-
-    def my_get_queryset(self, invites=False):
-        """
-        Queryset for `my` and `invites` action
-        """
-        # TODO: refactor to use Game with_rsvps instead
-        queryset = RsvpStatus.objects.filter(player=self.request.user)
-
-        if invites:
-            return queryset.filter(status=RsvpStatus.INVITED)
-
-        queryset = queryset.filter(status__gt=RsvpStatus.INVITED)
-
-        if 'all' in self.request.query_params:
-            return queryset
-
-        return queryset.filter(game__datetime__gt=Game.get_cuttoff_time())
 
     @list_route(methods=['get'])
     def my(self, *args, **kwargs):

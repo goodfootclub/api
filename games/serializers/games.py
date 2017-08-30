@@ -21,8 +21,6 @@ __all__ = [
     'GameCreateSerializer',
     'GameDetailsSerializer',
     'GameListSerializer',
-    'GameSerializer',
-    'GameSerializer_',
 ]
 
 
@@ -53,6 +51,11 @@ class GameListSerializer(ModelSerializer):
 
 
 class GameCreateSerializer(ModelSerializer):
+    """
+    Special format for game creation. Primarily due to providing a way to
+    add multiple games at once (series of games) that are only differ by
+    the datetime
+    """
 
     teams = PrimaryKeyRelatedField(
         many=True,
@@ -123,18 +126,11 @@ class GameCreateSerializer(ModelSerializer):
         if len(teams) > 2:
             raise ValidationError('Please pick up to 2 teams')
 
-        try:
-            location_obj = Location.objects.get(
-                name=location_data['name'],
-                address=location_data['address'],
-            )
-        except Location.DoesNotExist:
-            location_obj = Location.objects.create(
-                name=location_data['name'],
-                address=location_data['address'],
-            )
+        location_obj, _ = Location.objects.get_or_create(
+            name=location_data['name'],
+            address=location_data['address'],
+        )
 
-        # FIXME: *SLAM* There must be a better way!
         games = []
         game_name = validated_data.get('name', '')
         for i, dt in enumerate(datetimes):
@@ -171,92 +167,16 @@ class GameCreateSerializer(ModelSerializer):
         return games[0]
 
 
-# ------------------------------------------
-
-
-class GameSerializer_(ModelSerializer):
-    """Simple Game representation for polling and subsequent requests
-
-    Fields:
-
-     * id (Int) - read only, game id
-     * datetime (ISO Datetime String) - date & time of a game (in UTC)
-     * description (String) - any notes
-     * duration (Int) - game duration in minutes
-     * location (Int|Object) - id of Location or an object with name
-        and address
-     * organizer (Int) - read only, user id of the creator of the game
-     * teams (Int[]) - team ids
-
-    ## Example:
-
-        {
-            "id": 101,
-            "datetime": "2017-01-20T02:52:00Z",
-            "description": null,
-            "duration": null,
-            "location": 8,
-            "organizer": 101,
-            "teams": []
-        }
+class GameDetailsSerializer(ModelSerializer):
     """
-    class Meta:
-        model = Game
-        fields = (
-            'id',
-            'datetime',
-            'description',
-            'duration',
-            'location',
-            'organizer',
-            'teams'
-        )
-        read_only_fields = 'organizer',
-
-    def create(self, validated_data):
-        location_data = validated_data['location']
-
-        # TODO: test/improve Exception handling
-        if isinstance(location_data, int):
-            location_obj = super().create(validated_data)
-        else:
-            location_obj = Location.objects.get_or_create(
-                name=location_data['name'],
-                address=location_data['address'],
-            )
-
-        request = self.context.get('request', None)
-
-        validated_data.update({
-            'location': location_obj,
-            'organizer': request.user,
-        })
-
-        game = Game.objects.create(**validated_data)
-
-        RsvpStatus.objects.create(
-            game=game,
-            status=RsvpStatus.GOING,
-            player=request.user,
-        )
-
-        return game
-
-
-class GameSerializer(ModelSerializer):
-
+    Detailed game representation
+    """
+    location = LocationSerializer(read_only=True)
+    organizer = PlayerListSerializer(read_only=True)
     players = RsvpSerializer(source='rsvps', many=True, read_only=True)
+    teams = TeamListSerializer(many=True, read_only=True)
 
     class Meta:
         model = Game
         fields = '__all__'
-
-
-class GameDetailsSerializer(GameSerializer):
-
-    organizer = PlayerListSerializer(read_only=True)
-    teams = TeamListSerializer(many=True, read_only=True)
-    location = LocationSerializer(read_only=True)
-
-    class Meta(GameSerializer.Meta):
         read_only_fields = 'players', 'organizer', 'teams'
