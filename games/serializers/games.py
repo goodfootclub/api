@@ -23,7 +23,6 @@ __all__ = [
     'GameListSerializer',
     'GameSerializer',
     'GameSerializer_',
-    'MyGameListSerializer',
 ]
 
 
@@ -75,8 +74,8 @@ class GameCreateSerializer(ModelSerializer):
         fields = 'id', 'teams', 'name', 'datetime', 'datetimes', 'location',
 
     def is_valid(self, *args, **kwargs):
-        # Work around an issue with browsable api where empty input value
-        # becomes [''] for a list field
+        # Work around an issue with the browsable api where empty input
+        # value becomes [''] for a list field
         if self.initial_data.get('datetimes', None) == '':
             self.initial_data._mutable = True
             self.initial_data.pop('datetimes')
@@ -173,20 +172,6 @@ class GameCreateSerializer(ModelSerializer):
 
 
 # ------------------------------------------
-
-
-class MyGameListSerializer(GameListSerializer):
-    """
-    This takes an *RsvpStatus* object instead of a Game object, but only
-    uses status from it, rest of the fields are for respective .game
-    """
-
-    def to_representation(self, rsvp: RsvpStatus):
-        data = super().to_representation(rsvp.game)
-        data['rsvp'] = rsvp.status
-        data['rsvp_id'] = rsvp.id
-        data['team'] = rsvp.team
-        return data
 
 
 class GameSerializer_(ModelSerializer):

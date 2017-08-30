@@ -10,7 +10,6 @@ from .serializers import (
     GameListSerializer,
     GameSerializer,
     LocationSerializer,
-    MyGameListSerializer,
     RsvpCreateSerializer,
     RsvpSerializer,
 )
@@ -22,18 +21,28 @@ class GameViewSet(AppViewSet):
 
     Root viewset for api/games, also included in api/teams/{id}/games/
 
-
     list:
 
     Get a list of upcoming pickup games\n
     Can be searched by name, date, location name, location address.\n
     Can be ordered by `datetime` (default) and `-datetime`.
 
-
     create:
 
-    Create a game. You can create many copies at different dates at once
+    Create a game\n
+    You can create many copies at different dates at once
     by specifying multiple dates in `datetimes` property
+
+    retrieve:
+
+    Get a specific game\n
+    Players are managed through a separate endpoint: `games/{id}/players`
+
+    update: Update the game
+
+    partial_update: Update the game (partial)
+
+    destroy: Delete the game (hard)
     """
     queryset = Game.objects.all()\
         .select_related('location')\
@@ -43,15 +52,15 @@ class GameViewSet(AppViewSet):
     serializer_classes = {
         'list': GameListSerializer,
         'create': GameCreateSerializer,
-        'invites': MyGameListSerializer,
-        'my': MyGameListSerializer,
+        'invites': GameListSerializer,
+        'my': GameListSerializer,
     }
     ordering_fields = ('datetime', )
     permission_classes = (
         permissions.IsAuthenticated,
         GameUpdateDestroyPermission
     )
-    search_fields = ('datetime', 'location__name', 'location__address')
+    search_fields = ('datetime', 'location__name', 'location__address', 'name')
 
     def get_queryset(self):
         """
@@ -60,19 +69,18 @@ class GameViewSet(AppViewSet):
          - team games for `/teams/{team_pk}/games/` api
          - pickup games for `/games/` api
         """
-
-        if self.action == 'my':
-            return self.my_get_queryset()
-
-        if self.action == 'invites':
-            return self.my_get_queryset(invites=True)
-
         queryset = super().get_queryset()
 
-        if self.action != 'list':
+        if self.action not in ['invites', 'list', 'my']:  # not list
             return queryset
 
         queryset = queryset.with_rsvps(self.request.user)
+
+        if self.action == 'my':
+            queryset = queryset.filter(rsvp__gt=RsvpStatus.INVITED)
+
+        if self.action == 'invites':
+            return queryset.filter(rsvp=RsvpStatus.INVITED)
 
         if 'team_pk' in self.kwargs:
             # Team games for a specific team
@@ -81,10 +89,10 @@ class GameViewSet(AppViewSet):
             # Pickup games
             queryset = queryset.filter(teams=None)
 
-        if 'all' not in self.request.query_params:
-            return queryset.future()
+        if 'all' in self.request.query_params:
+            return queryset
 
-        return queryset
+        return queryset.future()
 
     def my_get_queryset(self, invites=False):
         """
@@ -112,24 +120,6 @@ class GameViewSet(AppViewSet):
     def invites(self, *args, **kwargs):
         """Pending game invites for the logged-in user"""
         return super().list(*args, **kwargs)
-
-    # def list(self, *args, **kwargs):
-    #     """
-    #     # My Games mnbvnbv
-    #     Games for the logged-in user are available at
-    #     [/api/games/my/](/api/games/my/)
-
-    #     # Pending invites
-    #     Invites are available at [/api/games/invites/](/api/games/invites/)
-    #     """
-    #     return super().list(*args, **kwargs)
-
-    def retrieve(self, *args, **kwargs):
-        """
-        # Players
-        Players can be managed through [games/{id}/players](players)
-        """
-        return super().retrieve(*args, **kwargs)
 
 
 class LocationViewSet(AppViewSet):

@@ -31,7 +31,7 @@ class User(AbstractUser):
         (MALE, 'Male'),
     )
 
-    bio = models.TextField(null=True, blank=True, max_length=1000)
+    bio = models.TextField(blank=True, max_length=1000, default='')
     birthday = models.DateField(null=True)
     cover = models.ImageField(null=True)
     email = models.EmailField(blank=True)
