@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework import permissions
 from rest_framework.decorators import list_route
 from rest_framework_gis.filters import InBBoxFilter
@@ -55,12 +56,16 @@ class GameViewSet(AppViewSet):
         'invites': GameListSerializer,
         'my': GameListSerializer,
     }
-    ordering_fields = ('datetime', )
+
     permission_classes = (
         permissions.IsAuthenticated,
         GameUpdateDestroyPermission
     )
+
+    ordering_fields = ('datetime', )
     search_fields = ('datetime', 'location__name', 'location__address', 'name')
+    bbox_filter_field = 'location__gis'
+    filter_backends = (InBBoxFilter, )
 
     def get_queryset(self):
         """
@@ -94,15 +99,44 @@ class GameViewSet(AppViewSet):
 
         return queryset.future()
 
+    def get_markers(self, queryset):
+        """
+        Get locations data with count of games
+        """
+        data = queryset.values(
+            'location__id',
+            'location__name',
+            'location__address',
+            'location__gis',
+        )
+        # import pdb
+        # pdb.set_trace()
+        data = queryset.values(
+            'location__id',
+            'location__name',
+            'location__address',
+        ).annotate(games=Count('location__id'))
+        return data
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+
+        res = self.get_paginated_response(serializer.data)
+        res.data['map'] = {'markers': 'TODO'}  # self.get_markers(queryset)}
+        res.data.move_to_end('results')
+        return res
+
     @list_route(methods=['get'])
     def my(self, *args, **kwargs):
         """Games for the logged in user"""
-        return super().list(*args, **kwargs)
+        return self.list(*args, **kwargs)
 
     @list_route(methods=['get'])
     def invites(self, *args, **kwargs):
         """Pending game invites for the logged-in user"""
-        return super().list(*args, **kwargs)
+        return self.list(*args, **kwargs)
 
 
 class LocationViewSet(AppViewSet):

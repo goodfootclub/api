@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 
@@ -35,11 +36,11 @@ urlpatterns = [
     url(r'^api/auth/jwt/refresh/$', refresh_jwt_token),
     url(r'^api/auth/jwt/verify/$', verify_jwt_token),
 
-    url(r'^api/auth/register', RegistrationView.as_view()),
-    url(r'^api/auth/activate', ActivationView.as_view()),
-    url(r'^api/auth/password/reset', PasswordResetView.as_view()),
+    url(r'^api/auth/register/$', RegistrationView.as_view()),
+    url(r'^api/auth/activate/$', ActivationView.as_view()),
+    url(r'^api/auth/password/reset/$', PasswordResetView.as_view()),
     url(
-        r'^api/auth/password/reset/confirm',
+        r'^api/auth/password/reset/confirm/$',
         PasswordResetConfirmView.as_view()
     ),
     url(
@@ -50,3 +51,10 @@ urlpatterns = [
     url(r'^django-auth/', include('django.contrib.auth.urls')),
     url(r'^api/', include('main.urls'))
 ]
+
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns

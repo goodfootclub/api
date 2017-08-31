@@ -2,6 +2,7 @@ git+git://github.com/mverteuil/pytest-ipdb.git#egg=pytest-ipdb
 celery[redis]==4.0.2
 coreapi==2.3.1
 django-crispy-forms==1.6.1
+django-debug-toolbar==1.8
 django-filter==1.0.2
 django-rest-swagger==2.1.2
 django-timezone-field==2.0

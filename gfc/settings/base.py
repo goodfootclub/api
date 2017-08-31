@@ -28,6 +28,9 @@ SECRET_KEY = 'r2s57nn3yg8%=h@xwtpy!9k%2opkw&v=3lm=yh9voetblt#v!b'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 TEMPLATE_DEBUG = False
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
+}
 
 ALLOWED_HOSTS = []
 
@@ -46,6 +49,7 @@ INSTALLED_APPS = [
 
     # 3rd party
     'crispy_forms',
+    'debug_toolbar',
     'django_filters',
     'djoser',
     'raven.contrib.django.raven_compat',
@@ -70,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'gfc.urls'
