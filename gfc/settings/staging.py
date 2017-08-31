@@ -9,6 +9,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET')
 
 DEBUG = False
 TEMPLATE_DEBUG = False
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
+}
 
 ALLOWED_HOSTS = ['dev.goodfoot.club', 'localhost']
 
