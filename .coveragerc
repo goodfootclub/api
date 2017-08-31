@@ -8,3 +8,4 @@ omit =
     *urls.py,
     *wsgi.py,
     manage.py
+    users/pipeline.py,

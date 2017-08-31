@@ -1,5 +1,6 @@
 from rest_framework import permissions
 from rest_framework.decorators import list_route
+from rest_framework_gis.filters import InBBoxFilter
 
 from main.viewsets import AppViewSet
 from .models import Game, Location, RsvpStatus
@@ -108,6 +109,8 @@ class LocationViewSet(AppViewSet):
     serializer_class = LocationSerializer
     queryset = Location.objects.all()
     search_fields = ('address', 'name')
+    bbox_filter_field = 'gis'
+    filter_backends = (InBBoxFilter, )
 
 
 # TODO: move to a separate permissions module
