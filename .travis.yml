@@ -5,13 +5,14 @@ python: '3.6'
 notifications:
   slack: gffc:oVo9Dqq6azm2JGu6Wa052sQC
 
-services:
-  - postgresql
-
 addons:
   ssh_known_hosts:
     - goodfoot.club
     - dev.goodfoot.club
+  postgresql: 9.6
+  apt:
+    packages:
+    - postgresql-9.6-postgis-2.3
 
 env:
   global:
