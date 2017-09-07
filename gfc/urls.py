@@ -47,7 +47,7 @@ urlpatterns = [
         r'^api/auth/',
         include('rest_framework.urls', namespace='rest_framework')
     ),
-    url(r'^auth/', include('social_django.urls', namespace='social')),
+    url(r'^social/', include('social_django.urls', namespace='social')),
     url(r'^django-auth/', include('django.contrib.auth.urls')),
     url(r'^api/', include('main.urls'))
 ]
