@@ -90,7 +90,7 @@ class GameViewSet(AppViewSet):
         if 'team_pk' in self.kwargs:
             # Team games for a specific team
             queryset = queryset.filter(teams__in=[self.kwargs['team_pk']])
-        else:
+        elif self.action == 'list':
             # Pickup games
             queryset = queryset.filter(teams=None)
 
