@@ -108,3 +108,19 @@ def test_account_delete():
     res = client.get(reverse('current-user'))
     assert res.status_code == status.HTTP_401_UNAUTHORIZED, \
         'Should log user out'
+
+
+def test_passwodr_change():
+    user = mixer.blend('users.User')
+    user.set_password('1234')
+    user.save()
+    client = APIClient()
+    client.login(username=user.username, password='1234')
+
+    res = client.patch(reverse('current-user'), {'password': '4321'})
+
+    assert res.status_code == status.HTTP_200_OK, \
+        'Current user should be able to update his password'
+
+    user.refresh_from_db()
+    assert user.check_password('4321'), 'Should set new password'

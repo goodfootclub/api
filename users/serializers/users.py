@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, CharField
 
 from ..models import User
 from teams.views import TeamListSerializer
@@ -18,10 +18,14 @@ class UserSerializer(ModelSerializer):
 
 class CurrentUserSerializer(UserSerializer):
     managed_teams = TeamListSerializer(many=True, read_only=True)
+    password = CharField(
+        write_only=True,
+        style={'input_type': 'password'},
+    )
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + (
-            'phone', 'email', 'managed_teams',
+            'phone', 'email', 'managed_teams', 'password'
         )
 
     def to_representation(self, user: User):
@@ -36,3 +40,9 @@ class CurrentUserSerializer(UserSerializer):
                 data['invites']['teams'] = inv_teams
 
         return data
+
+    def update(self, instance, validated_data):
+        new_password = validated_data.pop('password', None)
+        if new_password:
+            instance.set_password(new_password)
+        return super().update(instance, validated_data)
